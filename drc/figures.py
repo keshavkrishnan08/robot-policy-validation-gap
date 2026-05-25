@@ -93,6 +93,45 @@ def fig4_calibration(df, out_dir):
     return _save(fig, out_dir, "fig4_composite_calibration.pdf")
 
 
+# Metric classes by environment access (theory partition).
+ROLLOUT_FREE = ["M1", "M2", "M3", "M4", "M6", "M8"]
+ENV_QUERYING = ["M5", "M7"]
+
+
+def fig5_amplification(summary, out_dir, name="fig5_gap_vs_amplification.pdf"):
+    """Headline P1: validation gap vs the bound's amplification factor (L^H-1)/(L-1)."""
+    import pandas as pd
+
+    s = pd.DataFrame(summary).sort_values("ampl")
+    fig, ax = plt.subplots(figsize=(6, 4))
+    ax.scatter(s["ampl"], s["gap_pct"], c="#2b6cb0", s=50, zorder=3)
+    for _, r in s.iterrows():
+        ax.annotate(f"L={r['L']:.2f}", (r["ampl"], r["gap_pct"]), fontsize=7,
+                    textcoords="offset points", xytext=(4, 4))
+    ax.set_xlabel(r"amplification factor $(L^H-1)/(L-1)$")
+    ax.set_ylabel("validation gap (pp)")
+    ax.set_title("P1: the gap tracks the predicted amplification")
+    return _save(fig, out_dir, name)
+
+
+def fig6_metric_class(summary, out_dir, name="fig6_metric_class_vs_L.pdf"):
+    """Headline P2: rollout-free metrics lose ranking power as L grows past 1;
+    environment-querying metrics keep it."""
+    import pandas as pd
+
+    s = pd.DataFrame(summary).sort_values("L")
+    fig, ax = plt.subplots(figsize=(6, 4))
+    ax.plot(s["L"], s["rollout_free_rho"], "o-", color="#9b2c2c", label="rollout-free (M1-M4,M6,M8)")
+    ax.plot(s["L"], s["env_query_rho"], "s-", color="#2f855a", label="environment-querying (M5,M7)")
+    ax.axvline(1.0, ls="--", color="gray", lw=1)
+    ax.axhline(0.0, ls=":", color="gray", lw=0.8)
+    ax.set_xlabel(r"closed-loop gain $L$")
+    ax.set_ylabel("mean signed Spearman with success")
+    ax.set_title("P2: the identifiability limit at $L>1$")
+    ax.legend(fontsize=8)
+    return _save(fig, out_dir, name)
+
+
 def generate_all(results, df, out_dir):
     return {
         "fig1": fig1_headline(results, out_dir),

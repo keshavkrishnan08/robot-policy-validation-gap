@@ -12,6 +12,31 @@ import torch
 
 
 @torch.no_grad()
+def rollout_trajectory(policy, env, init_cond, max_steps, device="cpu", K=1, noise_seed=42):
+    """Closed-loop rollout returning the eef trajectory (T, 3). Used by the
+    Lyapunov estimator to measure how fast deviations grow."""
+    policy.eval()
+    env.reset_to(init_cond)
+    traj = [env.eef_pose()]
+    steps = 0
+    n_action_steps = policy.n_action_steps
+    while steps < max_steps:
+        obs = env.get_observation()
+        obs_t = {k: torch.as_tensor(v, dtype=torch.float32).to(device) for k, v in obs.items()}
+        chunk = policy.predict_action_chunk(obs_t, K=K, noise_seed=noise_seed)[0].cpu().numpy()
+        done = False
+        for a in chunk[:n_action_steps]:
+            _, _, done, info = env.step(a)
+            traj.append(env.eef_pose())
+            steps += 1
+            if done or steps >= max_steps:
+                break
+        if done:
+            break
+    return np.asarray(traj)
+
+
+@torch.no_grad()
 def evaluate_perturbation_robustness(
     policy, env, eval_conditions, max_steps, perturb_fn, device="cpu", K=10, noise_seed=42
 ):

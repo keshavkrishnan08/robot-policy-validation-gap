@@ -50,3 +50,6 @@ rollout:
   n_rollouts: 20
   ddim_noise_seed: 42
   deterministic: true
+  K: 1            # deterministic rollout: 1 fixed-seed DDIM sample (not 10) — ~10x cheaper,
+                  # no accuracy cost since the seed is fixed. Metrics still use m1_K=10.
+  perturb_eps: 0.05   # init perturbation magnitude for the L-hat estimator + robustness check
