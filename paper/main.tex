@@ -27,12 +27,11 @@
 
 \begin{abstract}
 Imitation-learned manipulation policies are deployed by choosing one checkpoint from the many
-saved during training. Because measuring task success requires expensive robot rollouts,
-practitioners pick this checkpoint by validation loss on held-out expert actions, a criterion
-inherited from supervised learning. The proxy is known to be unreliable: the lowest-validation-loss
-checkpoint can be far worse than the best one achievable. Yet the size of this discrepancy, what
-causes it, and how it varies across tasks remain uncharacterized, and no offline alternative has
-been evaluated systematically. We name the discrepancy the \emph{validation gap} and explain it.
+saved during training. Because measuring success requires costly rollouts, practitioners select by
+validation loss on held-out actions, a criterion inherited from supervised learning that is
+reliable there but fails on robots: the lowest-validation-loss checkpoint can be far worse than the
+best achievable, in ways uncharacterized and with no systematic offline alternative. We name the
+discrepancy the \emph{validation gap} and explain it.
 Per-step action error $\varepsilon$ compounds, so closed-loop deviation from the expert obeys
 $\delta_H \le L_a\,\varepsilon\,(L^{H}-1)/(L-1)$ in the horizon $H$ and closed-loop gain $L$:
 validation loss estimates $\varepsilon$, but deployment depends on $\delta_H$, and the two diverge
