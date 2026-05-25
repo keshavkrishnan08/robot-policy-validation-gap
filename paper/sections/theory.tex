@@ -1,63 +1,53 @@
-% Compounding-error account of the validation gap. Correct, tight, and tied to the
-% experiments: it predicts H2's functional form and grounds the coherence hypothesis.
+% HONEST framing: the bound is standard. We recall it, attribute it fully, and use it to
+% state the calibration prediction our experiments test. We do NOT claim the bound as novel.
 
-Validation loss and deployment success diverge for a reason that can be stated precisely. A
-short bound explains both halves of our study: why the gap grows with horizon and contact (the
-regime dependence H2 tests), and why metrics of accumulated deviation predict success where
-per-step error does not (the coherence hypothesis).
+The validation gap is not a new phenomenon in need of a new theory; it is an instance of the
+compounding-error effect studied since the origins of imitation learning. We recall the relevant
+bound, attribute it, and draw out the prediction it makes for \emph{offline metrics} --- the
+prediction our experiments are built to test. The contribution of this paper is empirical, not
+theoretical.
 
 \paragraph{Setup.} Let the dynamics be $s_{t+1}=f(s_t,a_t)$ with $f$ Lipschitz,
-$\|f(s,a)-f(s',a')\|\le L_s\|s-s'\|+L_a\|a-a'\|$. Let $\pi^\star$ be the expert and
-$g(s):=f(s,\pi^\star(s))$ the expert closed-loop map, with Lipschitz constant $L:=\mathrm{Lip}(g)$;
-$L$ captures how strongly the task amplifies or absorbs disturbances, and contact events make it
-large. A learned policy $\hat\pi$ has per-step action error $\|\hat\pi(s)-\pi^\star(s)\|\le\varepsilon$
-along its own rollout. Both policies start from $s_0$; let $\delta_t:=\|\hat s_t-s^\star_t\|$ be the
-state deviation between the closed-loop rollout of $\hat\pi$ and the expert.
-
-\begin{proposition}[Deviation bound]\label{prop:dev}
-With $\delta_0=0$,
+$\|f(s,a)-f(s',a')\|\le L_s\|s-s'\|+L_a\|a-a'\|$, let $\pi^\star$ be the expert,
+$g(s):=f(s,\pi^\star(s))$ the expert closed-loop map with $L:=\mathrm{Lip}(g)$, and let a learned
+policy have per-step action error $\varepsilon$ along its rollout. With $\delta_t$ the state
+deviation from the expert rollout and $\delta_0=0$, the standard error-propagation recurrence
+$\delta_{t+1}\le L\,\delta_t+L_a\varepsilon$ unrolls to
 \[
 \delta_H \;\le\; L_a\,\varepsilon\sum_{k=0}^{H-1}L^{k}
-\;=\;\begin{cases} L_a\,\varepsilon\,\dfrac{L^{H}-1}{L-1}, & L\neq 1,\\[1.2ex] L_a\,\varepsilon\,H, & L=1.\end{cases}
+\;=\;\begin{cases} L_a\,\varepsilon\,(L^{H}-1)/(L-1), & L\neq 1,\\[0.6ex] L_a\,\varepsilon\,H, & L=1,\end{cases}
+\tag{1}\label{eq:dev}
 \]
-\end{proposition}
+which exhibits three regimes: bounded deviation for self-correcting dynamics ($L<1$), linear growth
+at the stability boundary ($L=1$), and exponential growth for expansive, contact-rich dynamics
+($L>1$). This is classical. The recurrence is the discrete Gr\"onwall / error-propagation argument;
+the quadratic-in-horizon return version is due to \citet{ross2010efficient,ross2011reduction}; the
+three-regime characterization of covariate shift is \citet{spencer2021feedback}; and the
+unavoidability of exponential compounding under unstable continuous dynamics is
+\citet{simchowitz2025pitfalls}. Most directly, \citet{tan2026gain} show that the probability of
+horizon-$H$ task failure factorizes into a gain-dependent amplification term and the validation
+loss, making precise that validation loss alone cannot rank checkpoints. We claim none of this as
+new.
 
-\begin{proof}
-Write $\hat\pi(\hat s_t)=\pi^\star(\hat s_t)+e_t$ with $\|e_t\|\le\varepsilon$. Then
-$\hat s_{t+1}-s^\star_{t+1}=f(\hat s_t,\pi^\star(\hat s_t)+e_t)-f(s^\star_t,\pi^\star(s^\star_t))$.
-Adding and subtracting $f(\hat s_t,\pi^\star(\hat s_t))$ and applying the Lipschitz assumptions,
-\[
-\delta_{t+1}\le \|f(\hat s_t,\pi^\star(\hat s_t)+e_t)-f(\hat s_t,\pi^\star(\hat s_t))\|
-+\|g(\hat s_t)-g(s^\star_t)\| \le L_a\varepsilon+L\,\delta_t .
-\]
-Unrolling $\delta_{t+1}\le L\delta_t+L_a\varepsilon$ from $\delta_0=0$ gives the geometric sum.
-\end{proof}
+\paragraph{What it predicts for offline metrics.} The value of \eqref{eq:dev} here is as a lens on
+\emph{which offline quantity to measure}. Validation loss estimates $\varepsilon$, the per-step
+error --- the numerator of \eqref{eq:dev}. Deployment success is governed by whether the
+accumulated deviation $\delta_t$ stays inside the task tolerance --- the left-hand side. The two
+coincide only when $L\le 1$ and $H$ is small, so two predictions follow that we test directly:
 
-\paragraph{Three regimes.} The bound depends sharply on the closed-loop contraction $L$:
 \begin{itemize}\itemsep2pt
-\item $L<1$ (self-correcting): $\delta_H\le L_a\varepsilon/(1-L)$, bounded independent of horizon.
-Errors do not accumulate, and validation loss --- an estimate of $\varepsilon$ --- is a faithful proxy.
-\item $L=1$ (marginally stable): $\delta_H\le L_a\varepsilon H$, linear in horizon.
-\item $L>1$ (expansive; contact-rich or unstable): $\delta_H$ grows like $\varepsilon\,L^{H}$, exponential
-in horizon. A near-perfect validation loss (tiny $\varepsilon$) can still admit arbitrarily large deviation.
+\item[(P1)] The gap should grow with horizon and contact along the amplification factor
+$(L^H-1)/(L-1)$. This is the regime dependence H2 evaluates; the theory fixes its sign and shape in
+advance rather than leaving it a hunch.
+\item[(P2)] A metric that estimates $\delta$ rather than $\varepsilon$ should predict success where
+validation loss fails. Open-loop replay distance (M5) computes accumulated deviation under exactly
+the recurrence above, and latent drift (M4) measures departure from the training manifold, the event
+large $\delta_t$ triggers. This is the coherence hypothesis, now with a mechanism: coherence metrics
+estimate the integral, local metrics the integrand.
 \end{itemize}
 
-\paragraph{Two predictions our experiments test.} Validation loss estimates $\varepsilon$, the numerator
-of Proposition~\ref{prop:dev}; deployment success is governed by whether $\delta_t$ stays inside the
-task tolerance, the left-hand side. They agree only when $L\le 1$ and $H$ is small. Hence:
-(1) the gap should grow with horizon and contact along the form $(L^H-1)/(L-1)$, which is exactly the
-regime dependence H2 evaluates; and (2) a metric that estimates $\delta$ rather than $\varepsilon$
-should predict success where validation loss fails. Open-loop replay distance (M5) measures accumulated
-deviation under precisely this recurrence, and latent drift (M4) measures departure from the training
-manifold, the event large $\delta_t$ triggers. This is the coherence hypothesis with a mechanism:
-coherence metrics estimate the integral, local metrics estimate the integrand.
-
-\paragraph{Two caveats, both in our favor.} First, validation loss estimates $\varepsilon$ on the
-\emph{expert's} state distribution, whereas Proposition~\ref{prop:dev} uses the on-policy error, which is
-typically larger under covariate shift; the bound is therefore optimistic about validation loss, so the
-true gap is at least this severe. Second, translating the deviation bound into expected return via an
-$L_r$-Lipschitz reward recovers the classical compounding-error scaling of behavior cloning
-\citep{ross2010efficient,ross2011reduction}: $O(\varepsilon H^2)$ for non-self-correcting dynamics
-against $O(\varepsilon H)$ when errors do not compound. Our point is not the asymptotic rate but its
-calibration consequence --- the rate is precisely why an offline estimate of $\varepsilon$ is an
-unreliable, regime-dependent surrogate for success.
+To our knowledge no prior work \emph{empirically} calibrates these offline metrics against
+ground-truth success across modern visuomotor policies and task regimes, which is the gap this paper
+fills. One honest caveat strengthens the case: validation loss estimates $\varepsilon$ on the
+expert's state distribution, while \eqref{eq:dev} uses the on-policy error, typically larger under
+covariate shift --- so \eqref{eq:dev} is, if anything, optimistic about validation loss.

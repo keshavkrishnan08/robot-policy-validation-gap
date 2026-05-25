@@ -55,6 +55,17 @@ execution: they require running the policy in the environment. We study the comp
 case: metrics computable purely from the policy and held-out demonstrations, with no
 environment interaction whatsoever.
 
+\paragraph{Compounding-error theory.}
+That offline action error compounds into closed-loop failure is classical: \citet{ross2010efficient,ross2011reduction}
+established the quadratic-in-horizon return gap, \citet{spencer2021feedback} characterized the three
+regimes of covariate shift, and \citet{simchowitz2025pitfalls} showed exponential compounding is
+unavoidable under unstable continuous dynamics. Closest to us, \citet{tan2026gain} prove that
+horizon-$H$ failure probability factorizes into a gain-dependent amplification term and the validation
+loss, formalizing why validation loss cannot rank checkpoints. We take this theory as given. Our
+contribution is orthogonal and empirical: a systematic calibration of eight offline metrics against
+ground-truth success across two modern visuomotor architectures and eight task regimes, and a
+rollout-free predictor that operationalizes the theory's prediction.
+
 \paragraph{Runtime failure detection.}
 A parallel line of work applies OOD signals at execution time rather than at checkpoint-selection time. FAIL-Detect \citep{faildetect2025} frames runtime failure detection as sequential OOD detection, distilling policy inputs and outputs into scalar signals that correlate with failures and using conformal prediction for statistical guarantees. Subsequent work extends this to generative policies~\citep{failpred2025}. Both detect coherence failures while a policy is executing. Our M4 (latent Mahalanobis distance) applies the same OOD principle one stage earlier --- at training time, to select which checkpoint to execute in the first place.
 
