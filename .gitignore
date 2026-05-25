@@ -16,3 +16,6 @@ figures/smoke/
 
 # Keep the directory structure.
 !**/.gitkeep
+
+# Local tooling
+.claude/
