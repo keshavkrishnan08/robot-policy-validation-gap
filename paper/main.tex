@@ -5,8 +5,9 @@
 % every reported value traces to the analysis output (SA-6 validation criterion).
 \documentclass[11pt]{article}
 \usepackage[margin=1in]{geometry}
-\usepackage{graphicx,booktabs,amsmath,hyperref,xcolor}
+\usepackage{graphicx,booktabs,amsmath,amssymb,amsthm,hyperref,xcolor}
 \usepackage[round]{natbib}   % provides \citep/\citet, required by plainnat
+\newtheorem{proposition}{Proposition}
 \graphicspath{{../figures/}}
 \input{results_macros.tex}   % \HoneGap, \HoneP, \HthreeBest, \HfourRel, \OutcomeTitle, ...
 
@@ -32,22 +33,24 @@ inherited from supervised learning. The proxy is known to be unreliable: the low
 checkpoint can be far worse than the best one achievable. Yet the size of this discrepancy, what
 causes it, and how it varies across tasks remain uncharacterized, and no offline alternative has
 been evaluated systematically. We name the discrepancy the \emph{validation gap} and study it as
-a surrogate-endpoint calibration problem, the way a clinical biomarker is validated against the
-outcome it is meant to predict. We train Diffusion Policy and ACT across eight LIBERO and
-Robomimic tasks spanning short-to-long horizons and light-to-heavy contact, and score every
-checkpoint with eight rollout-free offline metrics against ground-truth closed-loop success. We
-characterize the gap, measure its dependence on task regime, and ask whether any offline metric
-predicts success better than validation loss and generalizes to held-out tasks. We give
-particular attention to whether signals of global trajectory coherence, such as distributional
-drift from the training manifold and open-loop replay fidelity, outpredict signals of local
-action accuracy.
+a surrogate-endpoint calibration problem, as in clinical biomarker validation. We give it a
+theoretical account: a compounding-error bound shows closed-loop deviation scales as
+$\varepsilon\,(L^{H}{-}1)/(L{-}1)$ in the per-step action error $\varepsilon$, the horizon $H$, and
+the closed-loop expansiveness $L$, so validation loss, which estimates $\varepsilon$, is an
+exponentially looser surrogate for success as horizon and contact grow, while signals of
+accumulated deviation stay informative. We test this empirically: training Diffusion Policy and
+ACT across eight LIBERO and Robomimic tasks spanning short-to-long horizons and light-to-heavy
+contact, we score every checkpoint with eight rollout-free offline metrics against ground-truth
+closed-loop success, and ask whether the gap follows the predicted regime dependence, whether any
+offline metric beats validation loss, and whether a composite predictor generalizes to held-out
+tasks.
 % RESULTS SENTENCE — add after the run, e.g.:
-% "We find that <metric> recovers the deployment ranking that validation loss discards,
-%  most strongly for <regime>, and that selecting checkpoints by it yields <X> pp higher
-%  expected success than validation loss."
-To our knowledge this is the first systematic calibration of offline policy-selection metrics
-against deployment success in robot manipulation. The protocol is pre-registered, needs no robot
-hardware, and runs on consumer GPUs.
+% "We find that open-loop replay fidelity recovers the deployment ranking validation loss
+%  discards, most strongly on long-horizon tasks, and selecting by it beats validation loss
+%  by <X> pp expected success."
+To our knowledge this is the first systematic, theoretically grounded calibration of offline
+policy-selection metrics against deployment success in robot manipulation. The protocol is
+pre-registered, needs no robot hardware, and runs on consumer GPUs.
 \end{abstract}
 
 \section{Introduction}
@@ -58,6 +61,9 @@ hardware, and runs on consumer GPUs.
 \section{The Validation Gap, Formally}
 % PRD section 4-5: the surrogate (val loss) vs true endpoint (success), H1-H4.
 \input{sections/problem.tex}
+
+\section{Why the Gap Exists: A Compounding-Error Account}
+\input{sections/theory.tex}
 
 \section{Method}
 % PRD sections 7-8: tasks, Diffusion Policy, 8 metrics, rollout protocol.

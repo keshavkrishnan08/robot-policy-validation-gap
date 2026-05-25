@@ -1,0 +1,63 @@
+% Compounding-error account of the validation gap. Correct, tight, and tied to the
+% experiments: it predicts H2's functional form and grounds the coherence hypothesis.
+
+Validation loss and deployment success diverge for a reason that can be stated precisely. A
+short bound explains both halves of our study: why the gap grows with horizon and contact (the
+regime dependence H2 tests), and why metrics of accumulated deviation predict success where
+per-step error does not (the coherence hypothesis).
+
+\paragraph{Setup.} Let the dynamics be $s_{t+1}=f(s_t,a_t)$ with $f$ Lipschitz,
+$\|f(s,a)-f(s',a')\|\le L_s\|s-s'\|+L_a\|a-a'\|$. Let $\pi^\star$ be the expert and
+$g(s):=f(s,\pi^\star(s))$ the expert closed-loop map, with Lipschitz constant $L:=\mathrm{Lip}(g)$;
+$L$ captures how strongly the task amplifies or absorbs disturbances, and contact events make it
+large. A learned policy $\hat\pi$ has per-step action error $\|\hat\pi(s)-\pi^\star(s)\|\le\varepsilon$
+along its own rollout. Both policies start from $s_0$; let $\delta_t:=\|\hat s_t-s^\star_t\|$ be the
+state deviation between the closed-loop rollout of $\hat\pi$ and the expert.
+
+\begin{proposition}[Deviation bound]\label{prop:dev}
+With $\delta_0=0$,
+\[
+\delta_H \;\le\; L_a\,\varepsilon\sum_{k=0}^{H-1}L^{k}
+\;=\;\begin{cases} L_a\,\varepsilon\,\dfrac{L^{H}-1}{L-1}, & L\neq 1,\\[1.2ex] L_a\,\varepsilon\,H, & L=1.\end{cases}
+\]
+\end{proposition}
+
+\begin{proof}
+Write $\hat\pi(\hat s_t)=\pi^\star(\hat s_t)+e_t$ with $\|e_t\|\le\varepsilon$. Then
+$\hat s_{t+1}-s^\star_{t+1}=f(\hat s_t,\pi^\star(\hat s_t)+e_t)-f(s^\star_t,\pi^\star(s^\star_t))$.
+Adding and subtracting $f(\hat s_t,\pi^\star(\hat s_t))$ and applying the Lipschitz assumptions,
+\[
+\delta_{t+1}\le \|f(\hat s_t,\pi^\star(\hat s_t)+e_t)-f(\hat s_t,\pi^\star(\hat s_t))\|
++\|g(\hat s_t)-g(s^\star_t)\| \le L_a\varepsilon+L\,\delta_t .
+\]
+Unrolling $\delta_{t+1}\le L\delta_t+L_a\varepsilon$ from $\delta_0=0$ gives the geometric sum.
+\end{proof}
+
+\paragraph{Three regimes.} The bound depends sharply on the closed-loop contraction $L$:
+\begin{itemize}\itemsep2pt
+\item $L<1$ (self-correcting): $\delta_H\le L_a\varepsilon/(1-L)$, bounded independent of horizon.
+Errors do not accumulate, and validation loss --- an estimate of $\varepsilon$ --- is a faithful proxy.
+\item $L=1$ (marginally stable): $\delta_H\le L_a\varepsilon H$, linear in horizon.
+\item $L>1$ (expansive; contact-rich or unstable): $\delta_H$ grows like $\varepsilon\,L^{H}$, exponential
+in horizon. A near-perfect validation loss (tiny $\varepsilon$) can still admit arbitrarily large deviation.
+\end{itemize}
+
+\paragraph{Two predictions our experiments test.} Validation loss estimates $\varepsilon$, the numerator
+of Proposition~\ref{prop:dev}; deployment success is governed by whether $\delta_t$ stays inside the
+task tolerance, the left-hand side. They agree only when $L\le 1$ and $H$ is small. Hence:
+(1) the gap should grow with horizon and contact along the form $(L^H-1)/(L-1)$, which is exactly the
+regime dependence H2 evaluates; and (2) a metric that estimates $\delta$ rather than $\varepsilon$
+should predict success where validation loss fails. Open-loop replay distance (M5) measures accumulated
+deviation under precisely this recurrence, and latent drift (M4) measures departure from the training
+manifold, the event large $\delta_t$ triggers. This is the coherence hypothesis with a mechanism:
+coherence metrics estimate the integral, local metrics estimate the integrand.
+
+\paragraph{Two caveats, both in our favor.} First, validation loss estimates $\varepsilon$ on the
+\emph{expert's} state distribution, whereas Proposition~\ref{prop:dev} uses the on-policy error, which is
+typically larger under covariate shift; the bound is therefore optimistic about validation loss, so the
+true gap is at least this severe. Second, translating the deviation bound into expected return via an
+$L_r$-Lipschitz reward recovers the classical compounding-error scaling of behavior cloning
+\citep{ross2010efficient,ross2011reduction}: $O(\varepsilon H^2)$ for non-self-correcting dynamics
+against $O(\varepsilon H)$ when errors do not compound. Our point is not the asymptotic rate but its
+calibration consequence --- the rate is precisely why an offline estimate of $\varepsilon$ is an
+unreliable, regime-dependent surrogate for success.

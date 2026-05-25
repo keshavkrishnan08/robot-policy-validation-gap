@@ -12,9 +12,10 @@ rollout-best checkpoint. We test the per-run gap with a one-sided Wilcoxon signe
 across all \NRuns{} runs, declaring support only if the median gap exceeds ten percentage
 points at the Bonferroni-corrected $\alpha = 0.0125$.
 
-\paragraph{H2 — the gap is regime-dependent.} Long-horizon and compositional tasks should
-show larger gaps than short, contact-light tasks, because long horizons compound small
-action errors that validation loss treats as equivalent. We fit a linear mixed-effects model
+\paragraph{H2 — the gap is regime-dependent.} Long-horizon and contact-rich tasks should
+show larger gaps than short, contact-light tasks. This is not a hunch: Proposition~\ref{prop:dev}
+predicts the gap grows along $(L^H-1)/(L-1)$ in horizon $H$ and closed-loop expansiveness $L$,
+so the regime effect has a sign and a shape fixed in advance. We fit a linear mixed-effects model
 with regime fixed effects and a per-seed random intercept, and test it by likelihood ratio.
 
 \paragraph{H3 — a better offline metric exists.} At least one of seven alternative metrics
