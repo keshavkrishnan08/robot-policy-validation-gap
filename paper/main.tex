@@ -25,27 +25,29 @@
 \maketitle
 
 \begin{abstract}
-Imitation-learned manipulation policies are deployed by choosing a single checkpoint from the
-many saved during training. Because measuring task success requires expensive robot rollouts,
-practitioners select this checkpoint using validation loss on held-out expert actions, a
-criterion inherited from supervised learning. This proxy is known to be unreliable: the
-checkpoint with the lowest validation loss can be substantially worse than the best one
-achievable, yet the magnitude of this discrepancy, its causes, and its dependence on task
-properties remain uncharacterized, and no offline alternative has been evaluated
-systematically. We name this discrepancy the \emph{validation gap} and study it as a
-surrogate-endpoint calibration problem, analogous to validating a clinical biomarker against
-the outcome it is meant to predict. We present a pre-registered and reproducible framework
-that trains Diffusion Policy and ACT across eight LIBERO and Robomimic tasks spanning
-short-to-long horizons and light-to-heavy contact, saves dense checkpoints along each training
-run, and scores every checkpoint with eight offline metrics computed without environment
-interaction together with ground-truth closed-loop success. The framework tests whether the
-gap exists, whether it depends on task regime, whether any offline metric predicts success
-more faithfully than validation loss, and whether a composite predictor generalizes to
-held-out tasks. It further examines whether metrics of global trajectory coherence, such as
-distributional drift from the training manifold and open-loop replay fidelity, predict success
-better than metrics of local action accuracy. To the best of our knowledge, this is the first
-systematic calibration of offline policy-selection metrics against deployment success in
-robotic manipulation. The framework requires no robot hardware and runs on consumer GPUs.
+Imitation-learned manipulation policies are deployed by choosing one checkpoint from the many
+saved during training. Because measuring task success requires expensive robot rollouts,
+practitioners pick this checkpoint by validation loss on held-out expert actions, a criterion
+inherited from supervised learning. The proxy is known to be unreliable: the lowest-validation-loss
+checkpoint can be far worse than the best one achievable. Yet the size of this discrepancy, what
+causes it, and how it varies across tasks remain uncharacterized, and no offline alternative has
+been evaluated systematically. We name the discrepancy the \emph{validation gap} and study it as
+a surrogate-endpoint calibration problem, the way a clinical biomarker is validated against the
+outcome it is meant to predict. We train Diffusion Policy and ACT across eight LIBERO and
+Robomimic tasks spanning short-to-long horizons and light-to-heavy contact, and score every
+checkpoint with eight rollout-free offline metrics against ground-truth closed-loop success. We
+characterize the gap, measure its dependence on task regime, and ask whether any offline metric
+predicts success better than validation loss and generalizes to held-out tasks. We give
+particular attention to whether signals of global trajectory coherence, such as distributional
+drift from the training manifold and open-loop replay fidelity, outpredict signals of local
+action accuracy.
+% RESULTS SENTENCE — add after the run, e.g.:
+% "We find that <metric> recovers the deployment ranking that validation loss discards,
+%  most strongly for <regime>, and that selecting checkpoints by it yields <X> pp higher
+%  expected success than validation loss."
+To our knowledge this is the first systematic calibration of offline policy-selection metrics
+against deployment success in robot manipulation. The protocol is pre-registered, needs no robot
+hardware, and runs on consumer GPUs.
 \end{abstract}
 
 \section{Introduction}
