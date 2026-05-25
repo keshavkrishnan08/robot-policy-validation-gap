@@ -14,9 +14,15 @@ python scripts/preflight.py        # 9-point readiness gate
 Confirms P1 (gap tracks the (L^H-1)/(L-1) amplification) and P2 (rollout-free metrics lose
 ranking power past L=1; environment-querying metrics keep it). Produces figs 5 and 6.
 ```bash
-python scripts/run_partA_sweep.py --L 0.7,0.85,0.95,1.0,1.1,1.3,1.6 --seeds 3 --epochs 5,15,40,80
+python scripts/run_partA_sweep.py --L 0.7,0.85,0.95,1.0,1.05,1.15 --seeds 3 --epochs 5,15,40,80
 # outputs: results/sweep_summary.csv, figures/partA/fig5_*, fig6_*
 ```
+NOTE: the code path is verified end-to-end, but the *trend* (P1/P2) only emerges with enough
+epochs to reach intermediate (non-saturated) success rates — a tiny smoke run gives degenerate
+all-fail/all-zero output. Use ≥4 checkpoints reaching partial success, and keep L near 1 (0.7–1.2)
+so the amplification axis stays readable. Tune epochs until mid-L tasks show success in (0,1),
+then the gap/curve and the rollout-free collapse become visible. This is controlled validation of
+the theory's form, not a benchmark result.
 
 ---
 

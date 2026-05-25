@@ -43,10 +43,12 @@ def estimate_lyapunov(policy, env, conds, max_steps, device="cpu", eps=0.05, K=1
         end = T if cap == 0 else max(cap, 4)
         t = np.arange(end)
         logd = np.log(d[:end])
-        if len(t) < 4 or np.allclose(logd, logd[0]):
-            continue
-        slope = np.polyfit(t, logd, 1)[0]   # log L_hat per step
-        rates.append(float(np.exp(slope)))
+        if len(t) >= 4 and not np.allclose(logd, logd[0]):
+            slope = np.polyfit(t, logd, 1)[0]            # log L_hat per step
+        else:
+            # saturated/too short: fall back to endpoint ratio (L_hat = (d_end/d_0)^(1/T))
+            slope = (logd[-1] - logd[0]) / max(len(t) - 1, 1)
+        rates.append(float(np.exp(np.clip(slope, -5, 5))))   # cap to avoid overflow on instant blow-up
     if not rates:
         return {"L_hat": float("nan"), "per_condition": [], "n": 0}
     # Geometric mean of per-condition rates.

@@ -21,11 +21,11 @@ from torch.utils.data import DataLoader
 
 from drc import analysis, config, figures, metrics as M
 from drc.data.dataset import collate
-from drc.dynamics_sweep import make_sweep_dataset, SweepEnv, sweep_eval_conditions, DIM
+from drc.dynamics_sweep import make_sweep_dataset, SweepEnv, sweep_eval_conditions
 from drc.figures import ROLLOUT_FREE, ENV_QUERYING
 from drc.lyapunov import amplification, estimate_lyapunov
 from drc.rollouts import evaluate_checkpoint
-from drc.train import build_policy, load_policy, train_run
+from drc.train import load_policy, train_run
 from drc.utils import ckpt_path, get_logger, path
 
 log = get_logger("partA")
@@ -119,9 +119,11 @@ def main(args):
         sub = st[st["task"] == task]
         rf = float(sub[ROLLOUT_FREE].mean().mean())
         eq = float(sub[ENV_QUERYING].mean().mean())
-        H = max_steps
+        # Effective compounding horizon for the amplification axis: cap so L>1 does not
+        # produce astronomical values that make the plot unreadable (the gap saturates anyway).
+        H_eff = min(max_steps, args.ampl_horizon)
         summary.append({"L": L, "L_hat": lhat[task], "gap_pct": float(g),
-                        "ampl": amplification(L, H), "rollout_free_rho": rf, "env_query_rho": eq})
+                        "ampl": amplification(L, H_eff), "rollout_free_rho": rf, "env_query_rho": eq})
     sdf = pd.DataFrame(summary)
     out = path("results", "sweep_summary.csv"); sdf.to_csv(out, index=False)
     print("\n===== Part A sweep summary (synthetic, controlled L) =====")
@@ -138,9 +140,11 @@ def main(args):
 
 if __name__ == "__main__":
     ap = argparse.ArgumentParser()
-    ap.add_argument("--L", default="0.7,0.9,1.0,1.15,1.4")
-    ap.add_argument("--seeds", type=int, default=2)
-    ap.add_argument("--epochs", default="3,10,30")
+    # L band focused near the L=1 transition so amplification stays plottable.
+    ap.add_argument("--L", default="0.7,0.85,0.95,1.0,1.05,1.15")
+    ap.add_argument("--seeds", type=int, default=3)
+    ap.add_argument("--epochs", default="5,15,40,80")
     ap.add_argument("--rollouts", type=int, default=12)
     ap.add_argument("--max_steps", type=int, default=40)
+    ap.add_argument("--ampl_horizon", type=int, default=12, help="effective H for the amplification axis")
     main(ap.parse_args())

@@ -5,7 +5,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 import numpy as np
 
-from drc.dynamics_sweep import SweepEnv, make_sweep_dataset, sweep_eval_conditions, DIM, TOL
+from drc.dynamics_sweep import SweepEnv, make_sweep_dataset, sweep_eval_conditions, DIM
 from drc.lyapunov import amplification
 
 
@@ -25,7 +25,7 @@ def test_sweep_dataset_shapes():
 def test_sweep_env_perfect_tracking():
     # Outputting the expert action a*=L*s should track the reference (success at horizon).
     env = SweepEnv(L=0.9, max_steps=20)
-    obs = env.reset_to({"state": np.array([0.2, 0.2, 0, 0], dtype=np.float32)})
+    env.reset_to({"state": np.array([0.2, 0.2, 0, 0], dtype=np.float32)})
     success_seen = False
     for _ in range(20):
         s = env._s.copy()
