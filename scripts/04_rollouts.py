@@ -35,30 +35,33 @@ def main(args):
     tasks_cfg = config.load_tasks()
     epochs = [int(e) for e in args.checkpoint_epochs.split(",")] if args.checkpoint_epochs else list(config.CHECKPOINT_EPOCHS)
 
+    archs = config.ARCHITECTURES if args.all_archs else (args.arch,)
     rows = []
     for task in config.TASKS:
         conds = load_conditions(task)
         max_steps = tasks_cfg[task]["max_steps"]
         ref_hashes = None
         env = env_for(task, synthetic=args.synthetic)
-        for seed in config.SEEDS:
-            for epoch in epochs:
-                cp = ckpt_path(task, seed, epoch)
-                if not os.path.exists(cp):
-                    continue
-                pol, _ = load_policy(cp, tcfg, device=args.device)
-                res = evaluate_checkpoint(pol, env, conds, max_steps, device=args.device, K=K, noise_seed=noise_seed)
-                # SA-4 check: identical paired initial conditions across checkpoints.
-                if ref_hashes is None:
-                    ref_hashes = res["state_hashes"]
-                elif res["state_hashes"] != ref_hashes:
-                    log.warning(f"{task}: init-condition hash drift at s{seed} ep{epoch}")
-                save_json(res, rollouts_path(task, seed, epoch))
-                rows.append({
-                    "task": task, "seed": seed, "epoch": epoch,
-                    "success_rate": res["success_rate"], "num_successes": res["num_successes"],
-                })
-                log.info(f"{task} s{seed} ep{epoch}: success_rate={res['success_rate']:.2f}")
+        for arch in archs:
+            for seed in config.SEEDS:
+                for epoch in epochs:
+                    cp = ckpt_path(task, seed, epoch, arch)
+                    if not os.path.exists(cp):
+                        continue
+                    pol, _ = load_policy(cp, tcfg, device=args.device)
+                    res = evaluate_checkpoint(pol, env, conds, max_steps, device=args.device,
+                                              K=K, noise_seed=noise_seed)
+                    # SA-4 check: identical paired initial conditions across checkpoints.
+                    if ref_hashes is None:
+                        ref_hashes = res["state_hashes"]
+                    elif res["state_hashes"] != ref_hashes:
+                        log.warning(f"{task}: init-condition hash drift at s{seed} [{arch}] ep{epoch}")
+                    save_json(res, rollouts_path(task, seed, epoch, arch))
+                    rows.append({
+                        "task": task, "seed": seed, "arch": arch, "epoch": epoch,
+                        "success_rate": res["success_rate"], "num_successes": res["num_successes"],
+                    })
+                    log.info(f"{task} s{seed} [{arch}] ep{epoch}: success_rate={res['success_rate']:.2f}")
 
     df = pd.DataFrame(rows)
     out = path("results", "rollouts.csv")
@@ -70,5 +73,7 @@ if __name__ == "__main__":
     ap = argparse.ArgumentParser()
     ap.add_argument("--synthetic", action="store_true")
     ap.add_argument("--device", default="cpu")
+    ap.add_argument("--arch", choices=config.ARCHITECTURES, default="diffusion")
+    ap.add_argument("--all_archs", action="store_true")
     ap.add_argument("--checkpoint_epochs", default=None)
     main(ap.parse_args())

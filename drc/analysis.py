@@ -29,11 +29,23 @@ METRIC_COLS = list(config.METRIC_COLS)
 # --------------------------------------------------------------------------- #
 # Data loading                                                                #
 # --------------------------------------------------------------------------- #
+# A "run" is one training trajectory: (task, seed, architecture).
+RUN_KEYS = ["task", "seed", "arch"]
+
+
+def _ensure_arch(df: pd.DataFrame) -> pd.DataFrame:
+    if "arch" not in df.columns:
+        df = df.copy()
+        df["arch"] = "diffusion"
+    return df
+
+
 def load_merged(metrics_csv: str, rollouts_csv: str) -> pd.DataFrame:
-    m = pd.read_csv(metrics_csv)
-    r = pd.read_csv(rollouts_csv)
-    df = m.merge(r[["task", "seed", "epoch", "success_rate"]], on=["task", "seed", "epoch"])
-    return df.sort_values(["task", "seed", "epoch"]).reset_index(drop=True)
+    m = _ensure_arch(pd.read_csv(metrics_csv))
+    r = _ensure_arch(pd.read_csv(rollouts_csv))
+    keys = ["task", "seed", "epoch", "arch"]
+    df = m.merge(r[keys + ["success_rate"]], on=keys)
+    return df.sort_values(RUN_KEYS + ["epoch"]).reset_index(drop=True)
 
 
 # --------------------------------------------------------------------------- #
@@ -59,7 +71,7 @@ def bca_ci(values: np.ndarray, stat=np.median, n_resamples=None, ci=0.95):
 def compute_gaps(df: pd.DataFrame) -> pd.DataFrame:
     """Per-run gap in percentage points: rollout-best minus val-L1-selected."""
     rows = []
-    for (task, seed), g in df.groupby(["task", "seed"]):
+    for (task, seed, arch), g in df.groupby(RUN_KEYS):
         g = g.sort_values("epoch")
         vlbest_sr = g.loc[g["M1"].idxmin(), "success_rate"]
         rollbest_sr = g["success_rate"].max()
@@ -67,6 +79,7 @@ def compute_gaps(df: pd.DataFrame) -> pd.DataFrame:
             {
                 "task": task,
                 "seed": seed,
+                "arch": arch,
                 "vlbest_success": vlbest_sr,
                 "rollbest_success": rollbest_sr,
                 "gap_pct": (rollbest_sr - vlbest_sr) * 100.0,
@@ -114,20 +127,25 @@ def h2_analysis(df: pd.DataFrame) -> dict[str, Any]:
     # Reference levels: medium horizon / medium complexity.
     gaps["horizon"] = pd.Categorical(gaps["horizon"], categories=["medium", "short", "long"])
     gaps["complexity"] = pd.Categorical(gaps["complexity"], categories=["medium", "low", "high"])
+    # Control for architecture as a fixed effect; the regime test is the LRT on the
+    # regime terms (architecture is in both full and null so it does not inflate the test).
+    multi_arch = gaps["arch"].nunique() > 1
+    arch_term = " + C(arch)" if multi_arch else ""
 
     method = "mixedlm"
     try:
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
-            full = smf.mixedlm("gap_pct ~ C(horizon) + C(complexity)", gaps, groups=gaps["seed"]).fit(reml=False)
-            null = smf.mixedlm("gap_pct ~ 1", gaps, groups=gaps["seed"]).fit(reml=False)
+            full = smf.mixedlm(f"gap_pct ~ C(horizon) + C(complexity){arch_term}", gaps,
+                               groups=gaps["seed"]).fit(reml=False)
+            null = smf.mixedlm(f"gap_pct ~ 1{arch_term}", gaps, groups=gaps["seed"]).fit(reml=False)
             llf_full, llf_null = full.llf, null.llf
             k_extra = len(full.fe_params) - len(null.fe_params)
             fe = {k: float(v) for k, v in full.fe_params.items()}
     except Exception:  # fall back to OLS LRT if mixedlm fails to converge
         method = "ols_fallback"
-        full = smf.ols("gap_pct ~ C(horizon) + C(complexity)", gaps).fit()
-        null = smf.ols("gap_pct ~ 1", gaps).fit()
+        full = smf.ols(f"gap_pct ~ C(horizon) + C(complexity){arch_term}", gaps).fit()
+        null = smf.ols(f"gap_pct ~ 1{arch_term}", gaps).fit()
         llf_full, llf_null = full.llf, null.llf
         k_extra = int(full.df_model - null.df_model)
         fe = {k: float(v) for k, v in full.params.items()}
@@ -175,9 +193,9 @@ def _signed_spearman(metric_vals, success, metric: str) -> float:
 
 def spearman_table(df: pd.DataFrame) -> pd.DataFrame:
     rows = []
-    for (task, seed), g in df.groupby(["task", "seed"]):
+    for (task, seed, arch), g in df.groupby(RUN_KEYS):
         g = g.sort_values("epoch")
-        rec = {"task": task, "seed": seed}
+        rec = {"task": task, "seed": seed, "arch": arch}
         for m in METRIC_COLS:
             rec[m] = _signed_spearman(g[m].values, g["success_rate"].values, m)
         rows.append(rec)
@@ -287,7 +305,7 @@ def causal_selection_analysis(df: pd.DataFrame) -> dict[str, Any]:
     results = {}
     for m in METRIC_COLS:
         selected_srs = []
-        for (task, seed), g in df.groupby(["task", "seed"]):
+        for _, g in df.groupby(RUN_KEYS):
             g = g.sort_values("epoch")
             if _METRIC_OPTIMISE[m] == "min":
                 best_idx = g[m].idxmin()
@@ -417,7 +435,8 @@ def run_all(metrics_csv: str, rollouts_csv: str) -> dict[str, Any]:
     }
     return {
         "n_observations": int(len(df)),
-        "n_runs": int(df.groupby(["task", "seed"]).ngroups),
+        "n_runs": int(df.groupby(RUN_KEYS).ngroups),
+        "architectures": sorted(df["arch"].unique().tolist()),
         "secondary": secondary,
         "H1": h1,
         "H2": h2,

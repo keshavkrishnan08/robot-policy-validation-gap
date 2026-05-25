@@ -28,11 +28,16 @@ SEEDS = (0, 1, 2)
 CHECKPOINT_EPOCHS = (10, 25, 50, 75, 100, 150)
 NUM_EPOCHS = 150
 
+# Two architectures (rigor): a "run" is (task, seed, architecture).
+ARCHITECTURES = ("diffusion", "act")
+
 TASKS = (
     "LIBERO-Spatial-1",
     "LIBERO-Object-1",
     "LIBERO-Goal-1",
     "LIBERO-Long-1",
+    "Robomimic-Lift-PH",
+    "Robomimic-Can-PH",
     "Robomimic-Square-PH",
     "Robomimic-Transport-PH",
 )
@@ -45,11 +50,14 @@ METRIC_COLS = ("M1", "M2", "M3", "M4", "M5", "M6", "M7", "M8")
 LOWER_IS_BETTER = ("M1", "M2", "M4", "M5", "M6", "M7")
 HIGHER_IS_BETTER = ("M3", "M8")
 
-# H4 task partition (locked).
+# H4 task partition (locked). Held out spans a short and a long horizon so the
+# held-out distribution is no narrower than training.
 H4_TRAIN_TASKS = (
     "LIBERO-Spatial-1",
     "LIBERO-Goal-1",
     "LIBERO-Long-1",
+    "Robomimic-Lift-PH",
+    "Robomimic-Can-PH",
     "Robomimic-Square-PH",
 )
 H4_HELD_OUT_TASKS = ("LIBERO-Object-1", "Robomimic-Transport-PH")
@@ -66,8 +74,8 @@ RIDGE_ALPHAS = (0.01, 0.1, 1, 10, 100)
 RIDGE_CV_FOLDS = 5
 BOOTSTRAP_RESAMPLES = 10000
 
-N_RUNS = len(TASKS) * len(SEEDS)            # 18
-N_CHECKPOINTS = N_RUNS * len(CHECKPOINT_EPOCHS)  # 108
+N_RUNS = len(TASKS) * len(SEEDS) * len(ARCHITECTURES)  # 8*3*2 = 48
+N_CHECKPOINTS = N_RUNS * len(CHECKPOINT_EPOCHS)         # 288
 
 
 @lru_cache(maxsize=None)
@@ -104,6 +112,8 @@ def task_regime_labels() -> dict[str, dict[str, str]]:
         "LIBERO-Object-1": {"horizon": "short", "complexity": "medium"},
         "LIBERO-Goal-1": {"horizon": "medium", "complexity": "medium"},
         "LIBERO-Long-1": {"horizon": "long", "complexity": "high"},
+        "Robomimic-Lift-PH": {"horizon": "short", "complexity": "low"},
+        "Robomimic-Can-PH": {"horizon": "medium", "complexity": "medium"},
         "Robomimic-Square-PH": {"horizon": "medium", "complexity": "high"},
         "Robomimic-Transport-PH": {"horizon": "long", "complexity": "high"},
     }

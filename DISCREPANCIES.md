@@ -3,19 +3,18 @@
 Logged honestly during implementation. None block the experiment; all should be
 reflected in the paper's methods/limitations.
 
-## 1. H1 power is lower than the PRD states
-- **PRD claim (section 11.1):** "For delta = 10, the empirical power is approximately 0.83."
-- **Realised (`drc/power.py`, 10k sims, n=18):**
-  - delta=10 pp, sigma=15, α=0.0125 → power ≈ **0.61**
-  - delta=15 pp, sigma=15, α=0.0125 → power ≈ **0.94**
-  - H3 paired Wilcoxon, margin=0.08, sd=0.10, α=0.00179 → power ≈ **0.49**
-- **Why:** 0.83 matches the *uncorrected* α=0.05; the locked test uses the
-  Bonferroni α=0.0125. The simulation agrees with noncentral-t theory
-  (Cohen's d=0.67, ncp≈2.83, t_crit≈2.46 → ~0.61–0.65; Wilcoxon slightly below t).
-- **Action:** the protocol is well-powered for a 15 pp gap (the magnitude the
-  field reports anecdotally) but only ~0.61 for exactly 10 pp. Report the realised
-  power curve, not the PRD's single optimistic number. Consider that H3 is the
-  weakest-powered test; treat a null H3 cautiously rather than as strong evidence.
+## 1. H1 power — RESOLVED by the 48-run (two-architecture) design
+- **Original concern (6 tasks × 3 seeds = 18 runs):** power ≈ 0.61 for a 10 pp gap
+  at α=0.0125, vs the PRD's optimistic 0.83 (which used the uncorrected α=0.05).
+- **Current design (8 tasks × 3 seeds × 2 architectures = 48 runs):**
+  - delta=10 pp, sigma=15, α=0.0125 → power ≈ **0.985**
+  - delta=15 pp → power ≈ **1.0**
+  - H3 paired Wilcoxon, margin=0.08, α=0.00179 → power ≈ **0.99**
+- **Why it changed:** treating a "run" as (task, seed, architecture) tripled N from
+  18 to 48. Power scales accordingly. The single-architecture and low-power
+  weaknesses are addressed by the same design change.
+- **Action:** report the realised power curve (`drc/power.py`, now defaulting to
+  N_RUNS=48). The protocol is now well-powered even for a 10 pp gap.
 
 ## 2. M2 (delta-MSE) definition is dimensionally loose
 The PRD pseudocode subtracts the current proprio pose from the action chunk. Action

@@ -44,18 +44,9 @@ def smoke_train_cfg():
 
 
 def part_a_model():
-    log.info("=== Part A: model path (train -> metrics -> rollouts) ===")
+    log.info("=== Part A: model path for BOTH architectures (train -> metrics -> rollouts) ===")
     tcfg = smoke_train_cfg()
 
-    for seed in SMOKE_SEEDS:
-        train_run(
-            task=SMOKE_TASK, seed=seed,
-            dataset_provider=dataset_provider(SMOKE_TASK, synthetic=True),
-            train_cfg=tcfg, backbone="smallcnn", device="cpu",
-            epochs=max(SMOKE_EPOCHS), checkpoint_epochs=SMOKE_EPOCHS, val_K=2, log_every=1,
-        )
-
-    # metrics + rollouts on the produced checkpoints
     _, val_ds, info = dataset_provider(SMOKE_TASK, synthetic=True)()
     tl = DataLoader(val_ds, batch_size=16, shuffle=False, collate_fn=collate)
     vl = DataLoader(val_ds, batch_size=16, shuffle=False, collate_fn=collate)
@@ -64,20 +55,27 @@ def part_a_model():
     conds = [{"state": np.array([-0.5, -0.5, 0.0, 0.0], dtype=np.float32)},
              {"state": np.array([-0.7, -0.3, 0.0, 0.0], dtype=np.float32)}]
 
-    for epoch in SMOKE_EPOCHS:
-        pols = [load_policy(ckpt_path(SMOKE_TASK, s, epoch), tcfg, "cpu")[0] for s in SMOKE_SEEDS]
-        m6 = M.compute_m6(pols, vl, "cpu", K=2)
-        for s, pol in zip(SMOKE_SEEDS, pols):
-            single = M.compute_single_checkpoint(pol, tl, vl, env, replay, "cpu", tcfg["metrics"])
-            single["M6"] = m6
-            for m in config.METRIC_COLS:
-                v = single[m]
-                assert np.isfinite(v), f"metric {m} not finite: {v}"
-            res = evaluate_checkpoint(pol, env, conds, max_steps=40, device="cpu", K=2, noise_seed=42)
-            assert len(res["successes"]) == len(conds)
-            log.info(f"  ep{epoch} s{s}: M1={single['M1']:.3f} M4={single['M4']:.3f} "
-                     f"M5={single['M5']:.3f} M6={single['M6']:.3f} sr={res['success_rate']:.2f}")
-    log.info("Part A OK: all 8 metrics finite, rollouts ran.")
+    for arch in config.ARCHITECTURES:
+        for seed in SMOKE_SEEDS:
+            train_run(
+                task=SMOKE_TASK, seed=seed, arch=arch,
+                dataset_provider=dataset_provider(SMOKE_TASK, synthetic=True),
+                train_cfg=tcfg, backbone="smallcnn", device="cpu",
+                epochs=max(SMOKE_EPOCHS), checkpoint_epochs=SMOKE_EPOCHS, val_K=2, log_every=2,
+            )
+        for epoch in SMOKE_EPOCHS:
+            pols = [load_policy(ckpt_path(SMOKE_TASK, s, epoch, arch), tcfg, "cpu")[0] for s in SMOKE_SEEDS]
+            m6 = M.compute_m6(pols, vl, "cpu", K=2)
+            for s, pol in zip(SMOKE_SEEDS, pols):
+                single = M.compute_single_checkpoint(pol, tl, vl, env, replay, "cpu", tcfg["metrics"])
+                single["M6"] = m6
+                for m in config.METRIC_COLS:
+                    assert np.isfinite(single[m]), f"[{arch}] metric {m} not finite: {single[m]}"
+                res = evaluate_checkpoint(pol, env, conds, max_steps=40, device="cpu", K=2, noise_seed=42)
+                assert len(res["successes"]) == len(conds)
+            log.info(f"  [{arch}] ep{epoch}: M1={single['M1']:.3f} M5={single['M5']:.3f} "
+                     f"M6={single['M6']:.3f} sr={res['success_rate']:.2f}")
+    log.info("Part A OK: both architectures train, all 8 metrics finite, rollouts ran.")
 
 
 def part_b_stats():

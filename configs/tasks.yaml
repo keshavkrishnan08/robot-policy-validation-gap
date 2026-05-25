@@ -47,6 +47,26 @@ tasks:
     max_steps: 800
     held_out: false
 
+  Robomimic-Lift-PH:
+    suite: robomimic
+    benchmark: lift
+    dataset: ph
+    horizon: short
+    complexity: low
+    n_demos: 200
+    max_steps: 400
+    held_out: false
+
+  Robomimic-Can-PH:
+    suite: robomimic
+    benchmark: can
+    dataset: ph
+    horizon: medium
+    complexity: medium
+    n_demos: 200
+    max_steps: 400
+    held_out: false
+
   Robomimic-Square-PH:
     suite: robomimic
     benchmark: square

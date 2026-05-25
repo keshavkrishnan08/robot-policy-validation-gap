@@ -6,6 +6,10 @@ seeds: [0, 1, 2]
 checkpoint_epochs: [10, 25, 50, 75, 100, 150]
 num_epochs: 150
 
+# Architectures evaluated (rigor: show the gap is architecture-general).
+# A "run" in the analysis is now (task, seed, architecture).
+architectures: [diffusion, act]
+
 optimizer:
   name: adamw
   lr: 1.0e-4

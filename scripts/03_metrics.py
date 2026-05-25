@@ -38,38 +38,40 @@ def main(args):
     rows = []
     epochs = [int(e) for e in args.checkpoint_epochs.split(",")] if args.checkpoint_epochs else list(config.CHECKPOINT_EPOCHS)
 
+    archs = config.ARCHITECTURES if args.all_archs else (args.arch,)
     for task in config.TASKS:
         _, val_ds, info, tl, vl = loaders_for(task, args.synthetic, args.bs)
         env = env_for(task, synthetic=args.synthetic)
         replay = build_replay_episodes(task, args.synthetic, val_ds) if args.synthetic else []
 
-        for epoch in epochs:
-            # M6 from the seed ensemble for this (task, epoch).
-            seed_policies = {}
-            for seed in config.SEEDS:
-                cp = ckpt_path(task, seed, epoch)
-                if os.path.exists(cp):
-                    pol, _ = load_policy(cp, tcfg, device=args.device)
-                    seed_policies[seed] = pol
-            if not seed_policies:
-                log.warning(f"no checkpoints for {task} epoch {epoch}; skipping")
-                continue
-            m6 = M.compute_m6(list(seed_policies.values()), vl, args.device, K=mcfg.get("m1_K", 10))
+        for arch in archs:
+            for epoch in epochs:
+                # M6 from the seed ensemble for this (task, arch, epoch).
+                seed_policies = {}
+                for seed in config.SEEDS:
+                    cp = ckpt_path(task, seed, epoch, arch)
+                    if os.path.exists(cp):
+                        pol, _ = load_policy(cp, tcfg, device=args.device)
+                        seed_policies[seed] = pol
+                if not seed_policies:
+                    log.warning(f"no checkpoints for {task} [{arch}] epoch {epoch}; skipping")
+                    continue
+                m6 = M.compute_m6(list(seed_policies.values()), vl, args.device, K=mcfg.get("m1_K", 10))
 
-            for seed, pol in seed_policies.items():
-                single = M.compute_single_checkpoint(pol, tl, vl, env, replay, args.device, mcfg)
-                single["M6"] = m6
-                vals = {m: single[m] for m in config.METRIC_COLS}
-                # finiteness guard (SA-3 validation criterion)
-                for m, v in vals.items():
-                    if not np.isfinite(v):
-                        raise ValueError(f"non-finite metric {m} for {task} s{seed} ep{epoch}")
-                rec = {"task": task, "seed": seed, "epoch": epoch, **vals}
-                save_json(rec, metrics_path(task, seed, epoch))
-                rows.append(rec)
-                log.info(f"{task} s{seed} ep{epoch}: M1={vals['M1']:.4f} M5={vals['M5']:.4f} M6={vals['M6']:.4f}")
+                for seed, pol in seed_policies.items():
+                    single = M.compute_single_checkpoint(pol, tl, vl, env, replay, args.device, mcfg)
+                    single["M6"] = m6
+                    vals = {m: single[m] for m in config.METRIC_COLS}
+                    for m, v in vals.items():
+                        if not np.isfinite(v):
+                            raise ValueError(f"non-finite metric {m} for {task} s{seed} [{arch}] ep{epoch}")
+                    rec = {"task": task, "seed": seed, "arch": arch, "epoch": epoch, **vals}
+                    save_json(rec, metrics_path(task, seed, epoch, arch))
+                    rows.append(rec)
+                    log.info(f"{task} s{seed} [{arch}] ep{epoch}: M1={vals['M1']:.4f} "
+                             f"M5={vals['M5']:.4f} M6={vals['M6']:.4f}")
 
-    df = pd.DataFrame(rows)[["task", "seed", "epoch", *config.METRIC_COLS]]
+    df = pd.DataFrame(rows)[["task", "seed", "arch", "epoch", *config.METRIC_COLS]]
     out = path("results", "metrics.csv")
     df.to_csv(out, index=False)
     log.info(f"wrote {len(df)} metric rows -> {out}")
@@ -80,5 +82,7 @@ if __name__ == "__main__":
     ap.add_argument("--synthetic", action="store_true")
     ap.add_argument("--device", default="cpu")
     ap.add_argument("--bs", type=int, default=32)
+    ap.add_argument("--arch", choices=config.ARCHITECTURES, default="diffusion")
+    ap.add_argument("--all_archs", action="store_true")
     ap.add_argument("--checkpoint_epochs", default=None)
     main(ap.parse_args())

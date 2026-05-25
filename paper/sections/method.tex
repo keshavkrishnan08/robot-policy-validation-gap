@@ -1,14 +1,19 @@
-\paragraph{Tasks.} Six simulator tasks span the regime space: LIBERO-Spatial-1,
+\paragraph{Tasks.} Eight simulator tasks span the regime space: LIBERO-Spatial-1,
 LIBERO-Object-1, LIBERO-Goal-1, and LIBERO-Long-1 from LIBERO~\citep{liu2023libero}, plus
-Robomimic-Square-PH and Robomimic-Transport-PH~\citep{mandlekar2021}. They range from short,
-single-object reaches to long, dual-arm, multi-stage manipulation. LIBERO-Object-1 and
-Robomimic-Transport-PH are held out for H4, locked before training.
+Robomimic-Lift-PH, Robomimic-Can-PH, Robomimic-Square-PH, and
+Robomimic-Transport-PH~\citep{mandlekar2021}. They range from short, single-object reaches to
+long, dual-arm, multi-stage manipulation, with three to four tasks per horizon regime.
+LIBERO-Object-1 and Robomimic-Transport-PH are held out for H4, locked before training.
 
-\paragraph{Policy.} A single architecture, Diffusion Policy~\citep{chi2023}: a 1D
-conditional U-net denoiser, ResNet-18 image encoder, proprioception concatenated, action
-chunk eight, prediction horizon sixteen, observation horizon two. Three seeds per task gives
-\NRuns{} runs. Checkpoints are saved at epochs 10, 25, 50, 75, 100, and 150, for
-\NCheckpoints{} checkpoints in total.
+\paragraph{Policies.} We use two architectures to test whether the gap is
+architecture-general: Diffusion Policy~\citep{chi2023diffusion} (a 1D conditional U-net
+denoiser) and ACT~\citep{zhao2023act} (an action-chunking CVAE transformer). Both use a
+ResNet-18 image encoder, proprioception concatenated, action chunk eight, prediction horizon
+sixteen, observation horizon two. A run is one (task, seed, architecture) triple: eight tasks
+$\times$ three seeds $\times$ two architectures $=$ \NRuns{} runs. Checkpoints are saved at
+epochs 10, 25, 50, 75, 100, and 150, for \NCheckpoints{} checkpoints in total. With
+\NRuns{} runs the protocol has power above 0.95 to detect a ten-percentage-point gap at the
+Bonferroni-corrected $\alpha$.
 
 \paragraph{The eight offline metrics.} M1 validation L1 (the baseline); M2 delta-action MSE;
 M3 action-distribution entropy; M4 latent Mahalanobis distance to the training distribution;

@@ -19,13 +19,14 @@ from scripts.providers import dataset_provider
 log = get_logger("02_train")
 
 
-def run_one(task, seed, args):
+def run_one(task, seed, arch, args):
     provider = dataset_provider(task, synthetic=args.synthetic)
     backbone = "smallcnn" if args.synthetic else args.backbone
     ckpt_epochs = [int(e) for e in args.checkpoint_epochs.split(",")] if args.checkpoint_epochs else None
     train_run(
         task=task,
         seed=seed,
+        arch=arch,
         dataset_provider=provider,
         backbone=backbone,
         device=args.device,
@@ -39,7 +40,9 @@ if __name__ == "__main__":
     ap = argparse.ArgumentParser()
     ap.add_argument("--task", choices=config.TASKS)
     ap.add_argument("--seed", type=int, choices=config.SEEDS)
+    ap.add_argument("--arch", choices=config.ARCHITECTURES, default="diffusion")
     ap.add_argument("--all", action="store_true")
+    ap.add_argument("--all_archs", action="store_true", help="with --all, sweep both architectures")
     ap.add_argument("--synthetic", action="store_true")
     ap.add_argument("--backbone", default="resnet18")
     ap.add_argument("--device", default="cuda")
@@ -49,10 +52,12 @@ if __name__ == "__main__":
     args = ap.parse_args()
 
     if args.all:
-        for task in config.TASKS:
-            for seed in config.SEEDS:
-                log.info(f"=== train {task} seed {seed} ===")
-                run_one(task, seed, args)
+        archs = config.ARCHITECTURES if args.all_archs else (args.arch,)
+        for arch in archs:
+            for task in config.TASKS:
+                for seed in config.SEEDS:
+                    log.info(f"=== train {task} seed {seed} [{arch}] ===")
+                    run_one(task, seed, arch, args)
     else:
         assert args.task is not None and args.seed is not None, "give --task and --seed, or --all"
-        run_one(args.task, args.seed, args)
+        run_one(args.task, args.seed, args.arch, args)

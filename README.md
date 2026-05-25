@@ -3,13 +3,13 @@
 When does offline validation loss predict a robot policy's real success rate, and when
 does it lie to you? This repo is the pre-registered, reproducible study that answers it.
 
-We train a Diffusion Policy on six LIBERO/Robomimic manipulation tasks, save six
-checkpoints per run across three seeds, then score every checkpoint two ways: eight
-offline metrics computed without touching the robot, and twenty closed-loop rollouts that
-measure the truth. Four pre-locked hypotheses (H1–H4) map which offline signals track
-deployment success, in which task regimes, and whether a composite predictor generalises
-to held-out tasks. The framing is a surrogate-endpoint calibration study, borrowed from
-clinical biomarker validation.
+We train two architectures (Diffusion Policy and ACT) on eight LIBERO/Robomimic manipulation
+tasks, save six checkpoints per run across three seeds — 48 runs, 288 checkpoints — then
+score every checkpoint two ways: eight offline metrics computed without touching the robot,
+and twenty closed-loop rollouts that measure the truth. Four pre-locked hypotheses (H1–H4)
+map which offline signals track deployment success, in which task regimes, and whether a
+composite predictor generalises to held-out tasks. The framing is a surrogate-endpoint
+calibration study, borrowed from clinical biomarker validation.
 
 ## Layout
 ```
@@ -42,13 +42,14 @@ pytest -q                             # unit tests
 ## Real run (Kaggle dual-T4)
 ```bash
 python scripts/01_setup.py --download
-python scripts/make_eval_conditions.py            # lock 20 init conditions / task
-python scripts/02_train.py --all --device cuda    # 18 runs, 108 checkpoints
-python scripts/03_metrics.py                      # 8 offline metrics / checkpoint
-python scripts/04_rollouts.py                     # 20 rollouts / checkpoint
-python scripts/05_analysis.py                     # H1–H4, figures, results.json
+python scripts/make_eval_conditions.py                       # lock 20 init conditions / task
+python scripts/02_train.py --all --all_archs --device cuda   # 48 runs, 288 checkpoints
+python scripts/03_metrics.py --all_archs                     # 8 offline metrics / checkpoint
+python scripts/04_rollouts.py --all_archs                    # 20 rollouts / checkpoint
+python scripts/05_analysis.py                                # H1–H4, figures, results.json
 ```
-The `--synthetic` flag on every driver swaps in the CPU verification backend.
+The `--synthetic` flag on every driver swaps in the CPU verification backend; `--all_archs`
+sweeps both Diffusion Policy and ACT (omit it to run a single `--arch`).
 
 ## The eight metrics
 M1 validation L1 · M2 delta-action MSE · M3 action entropy · M4 latent Mahalanobis ·

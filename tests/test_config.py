@@ -11,9 +11,10 @@ def test_prelock_consistent():
 
 
 def test_counts():
-    assert config.N_RUNS == 18
-    assert config.N_CHECKPOINTS == 108
-    assert len(config.TASKS) == 6
+    assert len(config.TASKS) == 8
+    assert len(config.ARCHITECTURES) == 2
+    assert config.N_RUNS == 8 * 3 * 2   # tasks x seeds x architectures = 48
+    assert config.N_CHECKPOINTS == config.N_RUNS * 6  # 288
     assert len(config.METRIC_COLS) == 8
 
 

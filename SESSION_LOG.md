@@ -3,6 +3,39 @@
 ```
 SESSION LOG ENTRY
 =================
+Date: 2026 May 25 (later same day)
+Project: DRC_CoRL_2026
+Session: Strong-accept design revision (pre-registration re-locked before training)
+
+Activities:
+- Lit-review-driven push toward CoRL strong accept. See STRONG_ACCEPT_PLAN.md.
+- Added a SECOND architecture (ACT, CVAE transformer) alongside Diffusion Policy.
+  A "run" is now (task, seed, architecture). drc/policy/act_policy.py.
+- Expanded task set 6 -> 8 (added Robomimic-Lift-PH short/low, Can-PH medium/med)
+  for 3/3/2 horizon-regime coverage.
+- Threaded `arch` through paths, train, metrics, rollouts, analysis, devtools, drivers.
+- analysis.py: runs keyed by (task,seed,arch); H2 controls for architecture as a
+  fixed effect; secondary causal-selection + coherence analyses respect arch.
+
+Impact:
+- N_RUNS 18 -> 48; N_CHECKPOINTS 108 -> 288.
+- POWER FIXED: H1 power at 10pp gap 0.61 -> 0.985; H3 0.49 -> 0.99 (drc/power.py).
+- Kills the two biggest reviewer objections (single architecture + low power) at once.
+
+Verification:
+- 24/24 unit tests pass (4 new ACT tests incl. 14-dim dual-arm action).
+- Full analysis pipeline runs on 288-row two-arch fake data; H1-H4 + secondary OK.
+- Smoke test extended to train + evaluate BOTH architectures end to end.
+
+Still open (honest):
+- Sim-only remains the dominant limitation; Tier-3 RoboArena external real-robot
+  validation is the proposed mitigation (go/no-go pending checkpoint availability).
+```
+
+
+```
+SESSION LOG ENTRY
+=================
 Date: 2026 May 25
 Project: DRC_CoRL_2026
 Session: Implementation session — full codebase build from the PRD

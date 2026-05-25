@@ -19,16 +19,16 @@ def ensure_dir(p: str) -> str:
     return p
 
 
-def ckpt_path(task: str, seed: int, epoch: int) -> str:
-    return path("checkpoints", task, str(seed), f"epoch_{epoch}.pt")
+def ckpt_path(task: str, seed: int, epoch: int, arch: str = "diffusion") -> str:
+    return path("checkpoints", task, arch, str(seed), f"epoch_{epoch}.pt")
 
 
-def metrics_path(task: str, seed: int, epoch: int) -> str:
-    return path("metrics", task, str(seed), f"epoch_{epoch}_metrics.json")
+def metrics_path(task: str, seed: int, epoch: int, arch: str = "diffusion") -> str:
+    return path("metrics", task, arch, str(seed), f"epoch_{epoch}_metrics.json")
 
 
-def rollouts_path(task: str, seed: int, epoch: int) -> str:
-    return path("rollouts", task, str(seed), f"epoch_{epoch}_rollouts.json")
+def rollouts_path(task: str, seed: int, epoch: int, arch: str = "diffusion") -> str:
+    return path("rollouts", task, arch, str(seed), f"epoch_{epoch}_rollouts.json")
 
 
 def save_json(obj: Any, p: str) -> None:

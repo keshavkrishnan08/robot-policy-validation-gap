@@ -23,20 +23,29 @@ from drc.utils import ckpt_path, ensure_dir, get_logger, path, save_json
 log = get_logger("train")
 
 
-def build_policy(info: dict, train_cfg: dict, backbone: str = "smallcnn") -> DiffusionUnetImagePolicy:
+def build_policy(info: dict, train_cfg: dict, backbone: str = "smallcnn", arch: str = "diffusion"):
+    """Construct the policy for the chosen architecture. Both architectures share
+    the inference interface used by metrics.py / rollouts.py."""
     p = train_cfg.get("policy", {})
-    return DiffusionUnetImagePolicy(
+    common = dict(
         action_dim=info["action_dim"],
         image_shape=info["image_shape"],
         proprio_dim=info["proprio_dim"],
         horizon=p.get("horizon", 16),
         n_action_steps=p.get("n_action_steps", 8),
         n_obs_steps=p.get("n_obs_steps", 2),
-        num_train_timesteps=p.get("num_train_timesteps", 100),
-        num_inference_steps=p.get("num_inference_steps", 16),
         crop_shape=info.get("crop_shape", tuple(p.get("crop_shape", (76, 76)))),
         crop_pad=train_cfg.get("augmentation", {}).get("random_crop_pad", 4),
         backbone=backbone,
+    )
+    if arch == "act":
+        from drc.policy.act_policy import ACTPolicy
+
+        return ACTPolicy(**common)
+    return DiffusionUnetImagePolicy(
+        num_train_timesteps=p.get("num_train_timesteps", 100),
+        num_inference_steps=p.get("num_inference_steps", 16),
+        **common,
     )
 
 
@@ -57,6 +66,7 @@ def train_run(
     task: str,
     seed: int,
     dataset_provider,
+    arch: str = "diffusion",
     train_cfg: dict | None = None,
     backbone: str = "smallcnn",
     device: str = "cpu",
@@ -76,7 +86,7 @@ def train_run(
     device = torch.device(device)
 
     train_ds, val_ds, info = dataset_provider()
-    policy = build_policy(info, train_cfg, backbone=backbone).to(device)
+    policy = build_policy(info, train_cfg, backbone=backbone, arch=arch).to(device)
     policy.normalizer.fit(train_ds.all_actions_flat().to(device))
 
     train_loader = DataLoader(
@@ -123,17 +133,18 @@ def train_run(
             {"epoch": epoch, "train_loss": train_loss, "val_l1": val_l1, "wallclock_s": time.time() - t0}
         )
         if epoch % log_every == 0:
-            log.info(f"{task} s{seed} ep{epoch}/{epochs} loss={train_loss:.4f} val_l1={val_l1:.4f}")
+            log.info(f"{task} s{seed} [{arch}] ep{epoch}/{epochs} loss={train_loss:.4f} val_l1={val_l1:.4f}")
 
         if epoch in checkpoint_epochs:
-            cp = ckpt_path(task, seed, epoch)
-            ensure_dir(path("checkpoints", task, str(seed)))
+            cp = ckpt_path(task, seed, epoch, arch)
+            ensure_dir(path("checkpoints", task, arch, str(seed)))
             torch.save(
                 {
                     "model_state": eval_model.state_dict(),
                     "info": info,
                     "policy_cfg": train_cfg.get("policy", {}),
                     "backbone": backbone,
+                    "arch": arch,
                     "task": task,
                     "seed": seed,
                     "epoch": epoch,
@@ -142,8 +153,8 @@ def train_run(
                 cp,
             )
 
-    log_path = path("checkpoints", task, str(seed), "train_log.json")
-    save_json({"task": task, "seed": seed, "history": history}, log_path)
+    log_path = path("checkpoints", task, arch, str(seed), "train_log.json")
+    save_json({"task": task, "seed": seed, "arch": arch, "history": history}, log_path)
     return {"history": history, "info": info}
 
 
@@ -151,7 +162,9 @@ def load_policy(ckpt_file: str, train_cfg: dict | None = None, device: str = "cp
     """Reconstruct a policy from a checkpoint for SA-3 / SA-4."""
     train_cfg = train_cfg or config.load_train_cfg()
     cp = torch.load(ckpt_file, map_location=device, weights_only=False)
-    policy = build_policy(cp["info"], train_cfg, backbone=cp.get("backbone", "smallcnn")).to(device)
+    policy = build_policy(
+        cp["info"], train_cfg, backbone=cp.get("backbone", "smallcnn"), arch=cp.get("arch", "diffusion")
+    ).to(device)
     policy.load_state_dict(cp["model_state"])
     policy.eval()
     return policy, cp

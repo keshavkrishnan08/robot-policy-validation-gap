@@ -75,3 +75,46 @@ def test_deterministic_noise_seed_repeatable():
     a1 = p.predict_action_chunk(obs, K=1, noise_seed=42)
     a2 = p.predict_action_chunk(obs, K=1, noise_seed=42)
     assert torch.allclose(a1, a2)
+
+
+def tiny_act():
+    from drc.policy.act_policy import ACTPolicy
+
+    return ACTPolicy(
+        action_dim=4, image_shape=(3, 12, 12), proprio_dim=4,
+        horizon=16, n_action_steps=8, n_obs_steps=2,
+        d_model=32, nhead=2, num_layers=2, z_dim=8, crop_shape=(10, 10), backbone="smallcnn",
+    )
+
+
+def test_act_loss_and_inference():
+    p = tiny_act()
+    p.normalizer.fit(torch.randn(50, 4))
+    batch = {"obs": tiny_obs(), "action": torch.randn(2, 16, 4)}
+    loss = p.compute_loss(batch)
+    assert loss.dim() == 0 and torch.isfinite(loss)
+
+    det = p.predict_deterministic(tiny_obs(), K=2)
+    assert det.shape == (2, 16, 4)
+    chunk = p.predict_action_chunk(tiny_obs(), K=1)
+    assert chunk.shape == (2, 8, 4)
+    lat = p.encode_latent(tiny_obs())
+    assert lat.shape[0] == 2 and lat.dim() == 2
+
+
+def test_act_deterministic_is_stable():
+    # z=0 deterministic prediction must be identical across calls.
+    p = tiny_act()
+    p.normalizer.fit(torch.randn(50, 4))
+    obs = tiny_obs(1)
+    assert torch.allclose(p.predict_deterministic(obs, K=1), p.predict_deterministic(obs, K=1))
+
+
+def test_act_handles_14dim_action():
+    from drc.policy.act_policy import ACTPolicy
+
+    p = ACTPolicy(action_dim=14, image_shape=(3, 12, 12), proprio_dim=6, horizon=16,
+                  d_model=32, nhead=2, num_layers=2, z_dim=8, crop_shape=(10, 10))
+    p.normalizer.fit(torch.randn(40, 14))
+    obs = {"image": torch.rand(1, 2, 3, 12, 12), "proprio": torch.rand(1, 2, 6)}
+    assert p.predict_deterministic(obs, K=1).shape == (1, 16, 14)

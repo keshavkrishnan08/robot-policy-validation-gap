@@ -11,7 +11,8 @@ from scipy.stats import wilcoxon
 from drc import config
 
 
-def h1_power(delta_pp=10.0, sigma_pp=15.0, n=18, alpha=None, n_sims=10000, seed=0) -> float:
+def h1_power(delta_pp=10.0, sigma_pp=15.0, n=None, alpha=None, n_sims=10000, seed=0) -> float:
+    n = n if n is not None else config.N_RUNS
     """One-sided Wilcoxon power to detect a mean gap of `delta_pp` percentage points."""
     alpha = alpha if alpha is not None else config.BONFERRONI_ALPHA
     rng = np.random.default_rng(seed)
@@ -28,7 +29,8 @@ def h1_power(delta_pp=10.0, sigma_pp=15.0, n=18, alpha=None, n_sims=10000, seed=
     return hits / n_sims
 
 
-def h3_power(margin=0.08, sd=0.10, n=18, alpha=None, n_sims=10000, seed=0) -> float:
+def h3_power(margin=0.08, sd=0.10, n=None, alpha=None, n_sims=10000, seed=0) -> float:
+    n = n if n is not None else config.N_RUNS
     """Power of the paired Wilcoxon to detect a Spearman advantage of `margin`."""
     alpha = alpha if alpha is not None else config.H3_ALPHA
     rng = np.random.default_rng(seed)
