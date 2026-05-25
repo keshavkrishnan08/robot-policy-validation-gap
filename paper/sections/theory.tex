@@ -46,8 +46,42 @@ large $\delta_t$ triggers. This is the coherence hypothesis, now with a mechanis
 estimate the integral, local metrics the integrand.
 \end{itemize}
 
-To our knowledge no prior work \emph{empirically} calibrates these offline metrics against
-ground-truth success across modern visuomotor policies and task regimes, which is the gap this paper
-fills. One honest caveat strengthens the case: validation loss estimates $\varepsilon$ on the
-expert's state distribution, while \eqref{eq:dev} uses the on-policy error, typically larger under
-covariate shift --- so \eqref{eq:dev} is, if anything, optimistic about validation loss.
+One honest caveat strengthens the case: validation loss estimates $\varepsilon$ on the expert's
+state distribution, while \eqref{eq:dev} uses the on-policy error, typically larger under covariate
+shift --- so \eqref{eq:dev} is, if anything, optimistic about validation loss.
+
+\paragraph{An identifiability limit, and the line it draws.}
+The bound above is standard. The observation we build on is not the bound but a partition of the
+candidate metrics by whether they \emph{query the environment}. Call a metric \emph{rollout-free}
+if it is a functional of the policy evaluated only on the expert-demonstration distribution
+$d^\star$; M1--M4, M6, and M8 are rollout-free, whereas M5 and M7 execute the policy in the
+simulator. This distinction has a sharp consequence.
+
+\begin{proposition}[Rollout-free metrics cannot rank in the expansive regime]\label{prop:imposs}
+Fix a task with expansiveness $L>1$ and horizon $H$. For every resolution $\zeta>0$ there exist two
+policies that are $\zeta$-indistinguishable under \emph{every} rollout-free metric --- they agree to
+within $\zeta$ on $d^\star$ and so produce identical metric values up to $\zeta$ --- yet whose
+closed-loop success rates differ by a constant independent of $\zeta$. No rollout-free metric can
+therefore consistently rank such checkpoints by success. A metric that queries the environment, even
+open-loop, is not subject to this limit.
+\end{proposition}
+
+\begin{proof}[Proof sketch]
+Let the two policies coincide with $\pi^\star$ on the support of $d^\star$ up to a perturbation of
+size $\zeta$, and differ only off $d^\star$: one steers toward a failure set, the other
+self-stabilizes. Because $L>1$, the $\zeta$ on-manifold difference is amplified and the closed loop
+leaves any fixed neighborhood of the expert manifold in $O(\log(1/\zeta)/\log L)$ steps
+($\le H$ for $\zeta$ small), after which the off-manifold behavior --- unconstrained by $d^\star$ ---
+fixes the outcome and the success rates separate by $\Omega(1)$. A rollout-free metric sees only the
+$\zeta$ difference on $d^\star$; an environment-querying metric observes the off-manifold divergence.
+\end{proof}
+
+This is a selection-theoretic reading of the long-known insufficiency of expert-distribution data
+\citep{ross2011reduction,simchowitz2025pitfalls}; what we take from it is the \emph{line it draws
+through our metric set}. It predicts that in contact-rich, long-horizon tasks ($L>1$, large $H$) no
+rollout-free metric --- validation loss included --- can be relied on, while M5 and M7, which touch
+the simulator, can. It is the formal version of this paper's ``horizon wall'' outcome, and it makes
+H3's metric-by-regime comparison a test of a stated boundary rather than an open fishing expedition.
+To our knowledge no prior work empirically calibrates these offline metrics against ground-truth
+success across modern visuomotor policies and task regimes, nor organizes them by this boundary,
+which is the gap this paper fills.

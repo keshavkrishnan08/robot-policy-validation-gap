@@ -20,9 +20,14 @@ alternative. Most recently, \citet{liu2025liberopro} and \citet{lee2025liberoplu
 demonstrated that LIBERO-trained vision-language-action policies scoring above 90\% on the
 standard benchmark collapse to near zero under modest perturbations (shifted objects,
 instruction paraphrases, changed viewpoints), indirectly showing that the validation-driven
-selection pipeline overfits the test distribution. Our work is the first to study this gap
-systematically across task regimes, compare multiple candidate offline signals, and frame
-the question as a calibration problem.
+selection pipeline overfits the test distribution. Closest on the empirical side,
+\citet{hpil2021} evaluated reward proxies for selecting imitation-learning hyperparameters on
+continuous-control benchmarks and found state divergence a useful proxy; that study predates
+diffusion and transformer visuomotor policies, treats low-dimensional control rather than
+image-based manipulation, and offers no regime characterization, theory link, or pre-registration.
+Our work is the first to study this gap systematically across task regimes and modern visuomotor
+architectures, compare multiple candidate offline signals organized by environment access, and
+frame the question as a calibration problem.
 
 \paragraph{Rollout-based evaluation and efficient alternatives.}
 A complementary line of work accepts the cost of rollout evaluation and focuses on making
