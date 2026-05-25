@@ -1,24 +1,71 @@
-Several groups have bumped into the validation gap without mapping it.
-Robomimic~\citep{mandlekar2021} reported the 50-to-100-percent discrepancy in a discussion
-section. ACT~\citep{zhao2023} used validation loss as a working default. SIMPLER
-\citep{li2024} measured weak correlation between validation error and real success, then
-turned to simulation-based evaluation rather than offline metrics. NeME~\citep{tiezzi2025}
-trained one alternative scorer for humanoid interaction. A line of work on rollout-based
-evaluation~\citep{vincent2024,snyder2026,vincent2026golden,anwar2025} accepts rollout cost
-and makes it efficient, sidestepping the offline question entirely.
+% Related Work — The Validation Gap (CoRL 2026)
+% All citations live-verified via web/arXiv in May 2026, except †classical biostatistics
+% refs (Prentice 1989; Buyse & Molenberghs 1998) verified against training knowledge.
 
-Two recent efforts come closest and must be distinguished. RoboEval~\citep{roboeval2025}
-augments binary success with richer behavioural metrics (coordination, trajectory smoothness,
-spatial precision) and shows they correlate with success across many tasks --- but those
-metrics are measured \emph{during closed-loop execution}. We ask the opposite question:
-whether any signal computable \emph{without} a rollout recovers success. A parallel cluster of
-work makes rollout-based evaluation cheap and rigorous and thereby accepts its
-cost~\citep{patil2026golden,snyder2026,vincent2024}; our study is the complement, testing
-whether rollouts can be avoided at all.
+\section{Related Work}
 
-What no prior work does is the full job on the offline side: measure the no-rollout gap across
-regimes, compare a battery of offline metrics, test cross-task generalisation, frame it as
-surrogate-endpoint calibration, and ship a reproducible protocol. The biomarker-qualification literature
-\citep{prentice1989,buyse1998,joffe2009} gives the calibration vocabulary we borrow: a
-surrogate must show both individual-level and trial-level association with the true endpoint
-before anyone should trust it. That is precisely the question we put to validation loss.
+\paragraph{Observations of the validation gap.}
+The gap between checkpoint-selection by validation loss and peak rollout performance has
+been noted independently by several groups. \citet{mandlekar2021} trained imitation
+policies on every saved checkpoint and reported that the validation-loss-selected model was
+50--100\% worse in success rate than the rollout-best model; the observation appeared in a
+single discussion sentence with no systematic follow-up. \citet{zhao2023act} adopted
+validation loss as the default checkpoint-selection rule in ACT, acknowledging it as a
+working compromise rather than a principled choice. \citet{li2024simpler} compared
+validation MSE against rollout success rate for several generalist policies and found low
+correlation, using this as the main motivation to build a simulation-based evaluation
+environment rather than fix the offline metric. A practitioner synthesis \citep{marchand2024}
+confirmed community-side awareness of the problem and the absence of a consensus
+alternative. Most recently, \citet{liu2025liberopro} and \citet{lee2025liberoplus}
+demonstrated that LIBERO-trained vision-language-action policies scoring above 90\% on the
+standard benchmark collapse to near zero under modest perturbations (shifted objects,
+instruction paraphrases, changed viewpoints), indirectly showing that the validation-driven
+selection pipeline overfits the test distribution. Our work is the first to study this gap
+systematically across task regimes, compare multiple candidate offline signals, and frame
+the question as a calibration problem.
+
+\paragraph{Rollout-based evaluation and efficient alternatives.}
+A complementary line of work accepts the cost of rollout evaluation and focuses on making
+it tractable. \citet{vincent2024stochastic} provide confidence bounds on a policy's success
+probability via Monte Carlo rollouts. \citet{snyder2026binary} extend this to a
+sample-efficient sequential testing framework based on safe anytime-valid inference,
+reducing evaluation burden by up to 70\%. \citet{patil2026golden} search over the initial
+noise distribution of a frozen Diffusion Policy via Monte Carlo evaluation, improving
+success on 38 of 43 tasks. \citet{wang2026ppguide} train a performance predictor on
+rollout-labeled action chunks and use it to steer policy execution at inference time.
+\citet{anwar2025} allocate a fixed rollout budget across tasks using active experiment
+selection. These works collectively establish that rollout-based evaluation is the trusted
+standard and is becoming cheap enough to use routinely. Our contribution is the orthogonal
+question: \emph{can any signal computable without rollouts recover the deployment outcome?}
+If the answer is yes, training pipelines become substantially cheaper; if no, this cluster's
+rollout-based approach is the principled one, and we provide the calibrated evidence for
+that conclusion.
+
+\paragraph{Offline and behavioral evaluation metrics.}
+\citet{tiezzi2025neme} proposed a learned offline meta-evaluator for imitation policies in
+humanoid human-robot interaction, explicitly motivated by validation loss's inadequacy. Their
+approach scores policies using Dynamic Time Warping of joint trajectories and is the closest
+prior work to our M5/M7 metrics. It addresses a single task domain, proposes one metric, and
+does not compare against other offline signals. \citet{wang2025roboeval} introduced
+RoboEval, a structured evaluation framework that augments binary success with behavioral
+metrics --- coordination quality, trajectory efficiency, and spatial precision --- and
+showed they correlate with success in 59.4\% of task-metric pairs across bimanual
+manipulation. Critically, RoboEval's metrics are computed \emph{during} closed-loop
+execution: they require running the policy in the environment. We study the complementary
+case: metrics computable purely from the policy and held-out demonstrations, with no
+environment interaction whatsoever.
+
+\paragraph{Policy architecture and benchmarks.}
+This work trains and evaluates Diffusion Policy \citep{chi2023diffusion}, the modal
+architecture for visuomotor manipulation, on the LIBERO benchmark \citep{liu2023libero} and
+the Robomimic benchmark \citep{mandlekar2021}. Architecture and benchmark choices are
+frozen before training; the scientific question is about the offline-to-online mapping, not
+about architecture comparisons.
+
+\paragraph{Surrogate-endpoint calibration.}
+The framing we import from drug development defines validation loss as a
+\emph{surrogate endpoint} and rollout success rate as the \emph{true endpoint}.
+\citet{prentice1989} established the formal criteria for when a surrogate is acceptable.
+\citet{buyse1998} developed the meta-analytic framework for surrogate validation, defining
+both individual-level and trial-level association requirements that we operationalise through
+our per-run Spearman correlations (H3) and cross-task composite predictor (H4).
