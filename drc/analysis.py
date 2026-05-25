@@ -268,6 +268,98 @@ def h4_analysis(df: pd.DataFrame) -> dict[str, Any]:
 
 
 # --------------------------------------------------------------------------- #
+# Secondary analysis A: causal selection analysis (Upgrade 2 — 2026-05-25)   #
+# Pre-registered as exploratory; added before any training.                   #
+# --------------------------------------------------------------------------- #
+
+# Metric direction for causal selection: which end of each metric is "better"?
+# Matches LOWER_IS_BETTER / HIGHER_IS_BETTER in config.
+_METRIC_OPTIMISE = {m: ("min" if m in LOWER_IS_BETTER else "max") for m in METRIC_COLS}
+
+
+def causal_selection_analysis(df: pd.DataFrame) -> dict[str, Any]:
+    """For each metric, simulate checkpoint selection using that metric alone
+    and compute the expected deployed success rate across runs.
+
+    Answers: 'If I had used metric M to pick checkpoints, what deployed success
+    rate would I have achieved?' — the practitioner-facing complement to H3.
+    """
+    results = {}
+    for m in METRIC_COLS:
+        selected_srs = []
+        for (task, seed), g in df.groupby(["task", "seed"]):
+            g = g.sort_values("epoch")
+            if _METRIC_OPTIMISE[m] == "min":
+                best_idx = g[m].idxmin()
+            else:
+                best_idx = g[m].idxmax()
+            selected_srs.append(g.loc[best_idx, "success_rate"])
+        expected = float(np.mean(selected_srs))
+        worst = float(np.percentile(selected_srs, 10))  # CVaR-like worst-case
+        results[m] = {
+            "expected_success": expected,
+            "expected_success_pct": expected * 100,
+            "p10_success_pct": worst * 100,
+            "mean_selected_sr": selected_srs,
+        }
+    # Rank metrics by expected success descending.
+    ranking = sorted(results.keys(), key=lambda m: results[m]["expected_success"], reverse=True)
+    return {
+        "per_metric": {m: {k: v for k, v in results[m].items() if k != "mean_selected_sr"}
+                       for m in METRIC_COLS},
+        "ranking_by_expected_success": ranking,
+        "best_selection_metric": ranking[0],
+        "best_expected_success_pct": results[ranking[0]]["expected_success_pct"],
+        "M1_expected_success_pct": results["M1"]["expected_success_pct"],
+        "gain_over_M1_pct": results[ranking[0]]["expected_success_pct"]
+                             - results["M1"]["expected_success_pct"],
+    }
+
+
+# --------------------------------------------------------------------------- #
+# Secondary analysis B: coherence hypothesis (Upgrade 1 — 2026-05-25)        #
+# --------------------------------------------------------------------------- #
+
+# Coherence hypothesis: metrics that measure global trajectory coherence
+# (M4 latent OOD, M5 replay, M7 jerk) should outperform local accuracy
+# metrics (M1 L1, M2 delta-MSE, M8 confidence) at predicting deployment success.
+COHERENCE_METRICS = ("M4", "M5", "M7")
+LOCAL_METRICS = ("M1", "M2", "M8")
+VARIABILITY_METRICS = ("M3", "M6")
+
+
+def coherence_hypothesis_analysis(h3_result: dict) -> dict[str, Any]:
+    """Test whether the coherence metric group has higher mean signed Spearman
+    than the local accuracy group, using a one-sided Wilcoxon on per-run values.
+    """
+    st_records = h3_result["spearman_table"]
+    if not st_records:
+        return {"supported": False, "note": "no spearman table"}
+
+    st = pd.DataFrame(st_records)
+    local_srs, coherence_srs = [], []
+    for _, row in st.iterrows():
+        local_srs.append(float(np.mean([row[m] for m in LOCAL_METRICS])))
+        coherence_srs.append(float(np.mean([row[m] for m in COHERENCE_METRICS])))
+
+    diff = np.array(coherence_srs) - np.array(local_srs)
+    if np.allclose(diff, 0):
+        stat, p = 0.0, 1.0
+    else:
+        stat, p = wilcoxon(diff, alternative="greater", zero_method="wilcox")
+
+    return {
+        "mean_spearman_local": float(np.mean(local_srs)),
+        "mean_spearman_coherence": float(np.mean(coherence_srs)),
+        "mean_diff_coherence_vs_local": float(np.mean(diff)),
+        "wilcoxon_stat": float(stat),
+        "p_value": float(p),
+        "supported": bool(p < 0.05),  # exploratory threshold, not Bonferroni
+        "note": "exploratory test of the coherence hypothesis (not pre-registered)",
+    }
+
+
+# --------------------------------------------------------------------------- #
 # Outcome matrix (PRD section 6)                                              #
 # --------------------------------------------------------------------------- #
 def classify_outcome(h1: bool, h2: bool, h3: bool, h4: bool) -> dict[str, str]:
@@ -319,9 +411,14 @@ def run_all(metrics_csv: str, rollouts_csv: str) -> dict[str, Any]:
     h3 = h3_analysis(df)
     h4 = h4_analysis(df)
     outcome = classify_outcome(h1["supported"], h2["supported"], h3["supported"], h4["supported"])
+    secondary = {
+        "causal_selection": causal_selection_analysis(df),
+        "coherence_hypothesis": coherence_hypothesis_analysis(h3),
+    }
     return {
         "n_observations": int(len(df)),
         "n_runs": int(df.groupby(["task", "seed"]).ngroups),
+        "secondary": secondary,
         "H1": h1,
         "H2": h2,
         "H3": h3,

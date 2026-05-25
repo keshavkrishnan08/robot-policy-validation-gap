@@ -55,6 +55,9 @@ execution: they require running the policy in the environment. We study the comp
 case: metrics computable purely from the policy and held-out demonstrations, with no
 environment interaction whatsoever.
 
+\paragraph{Runtime failure detection.}
+A parallel line of work applies OOD signals at execution time rather than at checkpoint-selection time. FAIL-Detect \citep{faildetect2025} frames runtime failure detection as sequential OOD detection, distilling policy inputs and outputs into scalar signals that correlate with failures and using conformal prediction for statistical guarantees. Subsequent work extends this to generative policies~\citep{failpred2025}. Both detect coherence failures while a policy is executing. Our M4 (latent Mahalanobis distance) applies the same OOD principle one stage earlier --- at training time, to select which checkpoint to execute in the first place.
+
 \paragraph{Policy architecture and benchmarks.}
 This work trains and evaluates Diffusion Policy \citep{chi2023diffusion}, the modal
 architecture for visuomotor manipulation, on the LIBERO benchmark \citep{liu2023libero} and

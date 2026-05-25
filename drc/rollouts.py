@@ -12,6 +12,23 @@ import torch
 
 
 @torch.no_grad()
+def evaluate_perturbation_robustness(
+    policy, env, eval_conditions, max_steps, perturb_fn, device="cpu", K=10, noise_seed=42
+):
+    """Run rollouts on *perturbed* initial conditions (Upgrade 3: perturbation-gap).
+
+    `perturb_fn(cond) -> cond` applies a small perturbation to an init condition.
+    Returns the same dict as evaluate_checkpoint plus 'perturbation_function'.
+    Intended for secondary analysis: do val-loss-selected checkpoints degrade more
+    under perturbation than rollout-best checkpoints?
+    """
+    perturbed = [perturb_fn(c) for c in eval_conditions]
+    result = evaluate_checkpoint(policy, env, perturbed, max_steps, device, K, noise_seed)
+    result["perturbation_function"] = getattr(perturb_fn, "__name__", "anonymous")
+    return result
+
+
+@torch.no_grad()
 def evaluate_checkpoint(policy, env, eval_conditions, max_steps, device="cpu", K=10, noise_seed=42):
     """Return {"successes": [0/1 per condition], "success_rate", "state_hashes"}."""
     policy.eval()
