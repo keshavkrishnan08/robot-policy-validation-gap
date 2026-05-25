@@ -66,13 +66,40 @@ $r=0.308$). Run each framework in its own session (TF/JAX/PyTorch), combine offl
 ---
 
 ## Compute budget (Kaggle dual-T4)
-| Part | Sessions | Note |
-|------|----------|------|
-| A controlled $L$-sweep | ~0 (CPU, hours) | run locally or on a Kaggle CPU kernel |
-| B training (48 runs) | 3–4 | per-task train→metrics→rollouts→prune (storage-safe) |
-| B perturbation + $\hat L$ | folded into B | reuse rollout harness |
-| C external validation | 2–3 | one per framework; OpenVLA-7B fits one T4 (bf16) |
-| **Total** | **~6–8 sessions** | feasible over ~2 weeks |
+
+### Full design: ~35–40h compute (~6–8 sessions)
+| Part | Compute | Note |
+|------|---------|------|
+| A controlled $L$-sweep | ~3h CPU | local or Kaggle CPU kernel |
+| B training (48 runs) | ~12h GPU | 8 tasks × 2 arch × 3 seeds |
+| B metrics (288 ckpts) | ~4h CPU | M5 sim-replays dominate |
+| B rollouts (5,760) | ~8h CPU | K=10 averaging is the cost |
+| C external validation | ~8h | 3 frameworks (TF/JAX/PyTorch) |
+| perturbation + sensitivity | ~4h | |
+
+### LEAN design (recommended): ~18–20h compute (~3–4 sessions)
+Four trims, each low-cost:
+1. **Rollout K=10 → K=1** (deterministic, fixed seed): 8h → ~1h. A single fixed-seed DDIM
+   sample is a valid deterministic rollout; the averaging was overkill. ~No accuracy cost.
+2. **Seeds 3 → 2**: n=48 → 32 runs; H1 power 0.985 → ~0.95 (still well-powered). The two
+   architectures already give four runs per task.
+3. **Part C → PyTorch-only** (OpenVLA + RT-2-X): ~2 fewer sessions; ~3 real policies, still
+   beats SIMPLER's r=0.308 baseline.
+4. **Defer sensitivity ablations** to the rebuttal.
+
+| Part | Lean compute |
+|------|--------------|
+| A controlled $L$-sweep | ~2h CPU |
+| B training (32 runs) | ~8h GPU |
+| B metrics (192 ckpts) | ~3h CPU |
+| B rollouts (K=1) | ~1h CPU |
+| B perturbation + $\hat L$ | folded in (~1h) |
+| C external (PyTorch only) | ~4h, 1 session |
+| **Total** | **~18–20h, 3–4 sessions** |
+
+**Do not cut:** 8 tasks (the $L$-spread is the theory's x-axis), both architectures (single-arch
+is the fatal flaw), Part A sweep (validates the bound, nearly free), $\hat L$ estimation. Cutting
+any of these removes a load-bearing piece of the strong-accept profile.
 
 ## Priority order (do in this sequence; each is shippable)
 1. **Part B core** (H1–H4 + coherence + causal selection) — the paper exists at this point.
