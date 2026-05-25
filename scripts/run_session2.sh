@@ -5,9 +5,10 @@ cd "$(dirname "$0")/.."
 
 RM_TASKS=(Robomimic-Lift-PH Robomimic-Can-PH Robomimic-Square-PH Robomimic-Transport-PH)
 
-echo "[S2] SA-2 training (Robomimic, both architectures)"
-for arch in diffusion act; do
-  for task in "${RM_TASKS[@]}"; do
+# Per-task interleave with pruning (same storage discipline as Session 1).
+for task in "${RM_TASKS[@]}"; do
+  echo "[S2] === task $task: train both architectures ==="
+  for arch in diffusion act; do
     for seed in 0 1 2; do
       gpu=$(( seed % 2 ))
       CUDA_VISIBLE_DEVICES=$gpu python scripts/02_train.py --task "$task" --seed "$seed" \
@@ -15,12 +16,12 @@ for arch in diffusion act; do
       if (( $(jobs -r | wc -l) >= 2 )); then wait -n; fi
     done
   done
+  wait
+  echo "[S2] === task $task: metrics + rollouts, then prune ==="
+  python scripts/03_metrics.py  --tasks "$task" --all_archs --device cpu
+  python scripts/04_rollouts.py --tasks "$task" --all_archs --device cpu
+  rm -rf "checkpoints/$task"
 done
-wait
-
-echo "[S2] SA-3 metrics + SA-4 rollouts (all checkpoints, both archs, CPU)"
-python scripts/03_metrics.py --all_archs --device cpu
-python scripts/04_rollouts.py --all_archs --device cpu
 
 echo "[S2] SA-5 analysis + figures"
 python scripts/05_analysis.py

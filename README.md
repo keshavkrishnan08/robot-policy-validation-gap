@@ -35,9 +35,12 @@ paper/          CoRL LaTeX scaffold (results filled from results.json)
 ```bash
 pip install -r requirements.txt
 python scripts/01_setup.py            # verify pre-lock consistency + environment
-python scripts/smoke_test.py          # full pipeline on synthetic data + fake stats
-pytest -q                             # unit tests
+python scripts/preflight.py           # 9-point readiness gate (all real-run paths wired)
+python scripts/smoke_test.py          # full pipeline on synthetic data, both architectures
+pytest -q                             # unit tests (28)
 ```
+Run `preflight.py` before any Kaggle session — it catches config/adapter/storage issues
+on CPU in seconds, so a GPU session never fails hours in.
 
 ## Real run (Kaggle dual-T4)
 ```bash

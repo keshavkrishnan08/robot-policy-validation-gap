@@ -39,7 +39,8 @@ def main(args):
     epochs = [int(e) for e in args.checkpoint_epochs.split(",")] if args.checkpoint_epochs else list(config.CHECKPOINT_EPOCHS)
 
     archs = config.ARCHITECTURES if args.all_archs else (args.arch,)
-    for task in config.TASKS:
+    selected = [t.strip() for t in args.tasks.split(",")] if args.tasks else list(config.TASKS)
+    for task in selected:
         _, val_ds, info, tl, vl = loaders_for(task, args.synthetic, args.bs)
         env = env_for(task, synthetic=args.synthetic)
         replay = build_replay_episodes(task, args.synthetic, val_ds) if args.synthetic else []
@@ -73,8 +74,13 @@ def main(args):
 
     df = pd.DataFrame(rows)[["task", "seed", "arch", "epoch", *config.METRIC_COLS]]
     out = path("results", "metrics.csv")
+    # Append-merge: per-task runs accumulate into one aggregate (re-running a task replaces it).
+    if os.path.exists(out):
+        prev = pd.read_csv(out)
+        prev = prev[~prev["task"].isin(df["task"].unique())]
+        df = pd.concat([prev, df], ignore_index=True)
     df.to_csv(out, index=False)
-    log.info(f"wrote {len(df)} metric rows -> {out}")
+    log.info(f"metrics.csv now has {len(df)} rows ({df['task'].nunique()} tasks)")
 
 
 if __name__ == "__main__":
@@ -84,5 +90,6 @@ if __name__ == "__main__":
     ap.add_argument("--bs", type=int, default=32)
     ap.add_argument("--arch", choices=config.ARCHITECTURES, default="diffusion")
     ap.add_argument("--all_archs", action="store_true")
+    ap.add_argument("--tasks", default=None, help="comma list to process a subset (default all)")
     ap.add_argument("--checkpoint_epochs", default=None)
     main(ap.parse_args())

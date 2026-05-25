@@ -36,8 +36,9 @@ def main(args):
     epochs = [int(e) for e in args.checkpoint_epochs.split(",")] if args.checkpoint_epochs else list(config.CHECKPOINT_EPOCHS)
 
     archs = config.ARCHITECTURES if args.all_archs else (args.arch,)
+    selected = [t.strip() for t in args.tasks.split(",")] if args.tasks else list(config.TASKS)
     rows = []
-    for task in config.TASKS:
+    for task in selected:
         conds = load_conditions(task)
         max_steps = tasks_cfg[task]["max_steps"]
         ref_hashes = None
@@ -65,8 +66,12 @@ def main(args):
 
     df = pd.DataFrame(rows)
     out = path("results", "rollouts.csv")
+    if os.path.exists(out) and len(df):
+        prev = pd.read_csv(out)
+        prev = prev[~prev["task"].isin(df["task"].unique())]
+        df = pd.concat([prev, df], ignore_index=True)
     df.to_csv(out, index=False)
-    log.info(f"wrote {len(df)} rollout rows -> {out}")
+    log.info(f"rollouts.csv now has {len(df)} rows ({df['task'].nunique() if len(df) else 0} tasks)")
 
 
 if __name__ == "__main__":
@@ -75,5 +80,6 @@ if __name__ == "__main__":
     ap.add_argument("--device", default="cpu")
     ap.add_argument("--arch", choices=config.ARCHITECTURES, default="diffusion")
     ap.add_argument("--all_archs", action="store_true")
+    ap.add_argument("--tasks", default=None, help="comma list to process a subset (default all)")
     ap.add_argument("--checkpoint_epochs", default=None)
     main(ap.parse_args())
