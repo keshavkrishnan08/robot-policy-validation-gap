@@ -9,7 +9,7 @@ import os
 
 import numpy as np
 
-from drc.data.libero_adapter import _resize, _split_and_pack, CROP, IMG_SIZE
+from drc.data.libero_adapter import _resize, _split_and_pack, CROP
 
 # agentview + the second camera that the dual-arm Transport task exposes.
 IMG_KEYS = {

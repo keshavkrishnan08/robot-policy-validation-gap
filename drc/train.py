@@ -97,6 +97,7 @@ def train_run(
     history = []
     for epoch in range(1, epochs + 1):
         policy.train()
+        t0 = time.time()
         losses = []
         for batch in train_loader:
             obs = {k: v.to(device) for k, v in batch["obs"].items()}
@@ -118,7 +119,9 @@ def train_run(
         eval_model = ema_model if ema_model is not None else policy
         val_l1 = validation_l1(eval_model, val_loader, device, K=val_K)
         train_loss = float(np.mean(losses)) if losses else float("nan")
-        history.append({"epoch": epoch, "train_loss": train_loss, "val_l1": val_l1})
+        history.append(
+            {"epoch": epoch, "train_loss": train_loss, "val_l1": val_l1, "wallclock_s": time.time() - t0}
+        )
         if epoch % log_every == 0:
             log.info(f"{task} s{seed} ep{epoch}/{epochs} loss={train_loss:.4f} val_l1={val_l1:.4f}")
 

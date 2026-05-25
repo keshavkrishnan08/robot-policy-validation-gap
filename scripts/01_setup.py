@@ -29,7 +29,7 @@ def verify_environment():
     log.info(f"Runs: {config.N_RUNS} | checkpoints: {config.N_CHECKPOINTS}")
     log.info(f"Bonferroni alpha={config.BONFERRONI_ALPHA}, H3 alpha={config.H3_ALPHA:.6f}")
 
-    import numpy, pandas, scipy, sklearn  # noqa
+    import numpy, scipy, sklearn  # noqa
     log.info(f"numpy {numpy.__version__}, scipy {scipy.__version__}, sklearn {sklearn.__version__}")
     try:
         import torch

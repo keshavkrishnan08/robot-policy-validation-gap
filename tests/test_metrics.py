@@ -4,7 +4,6 @@ import sys
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 import numpy as np
-import torch
 from torch.utils.data import DataLoader
 
 from drc import metrics as M
@@ -27,7 +26,6 @@ def setup_policy_and_loader():
 
 def test_all_per_checkpoint_metrics_finite():
     p, loader = setup_policy_and_loader()
-    cfg = {"m1_K": 1, "m3_K": 2, "m4_pca_components": 8, "m8_K": 2}
     stats = M.compute_train_latent_stats(p, loader, "cpu", n_components=8)
     assert np.all(np.isfinite(stats["cov_inv"]))
     for fn, args in [
