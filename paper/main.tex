@@ -35,28 +35,24 @@ causes it, and how it varies across tasks remain uncharacterized, and no offline
 been evaluated systematically. We name the discrepancy the \emph{validation gap} and study it as
 a surrogate-endpoint calibration problem, as in clinical biomarker validation. The gap is an
 instance of compounding error: per-step action error is amplified by a horizon- and gain-dependent
-factor, so validation loss, an estimate of per-step error, cannot by itself rank checkpoints, a
-point recent theory makes precise. We sharpen this into an identifiability limit. In the expansive,
-contact-rich regime, no metric computed from the policy and demonstrations alone, validation loss
-included, can rank checkpoints by success, because two policies that agree on the expert
-distribution can diverge arbitrarily off it; a metric that queries the environment even once, such
-as an open-loop replay in simulation, escapes this limit. This draws a line through the space of
-offline metrics by whether they touch the environment, and predicts which side can possibly work in
-which regime. We then provide the empirical calibration the field lacks: training Diffusion Policy
-and ACT across eight LIBERO and Robomimic tasks spanning short-to-long horizons and light-to-heavy
-contact, we score every checkpoint with eight metrics drawn from both sides of that line against
-ground-truth closed-loop success, and ask whether the gap follows the predicted regime dependence,
-which metrics recover success where validation loss fails, and whether a composite predictor
-generalizes to held-out tasks.
-% RESULTS SENTENCE — fill after the LIBERO/Robomimic run (none yet; a toy
-% control study is consistent with the prediction but is not a benchmark result):
+factor, so validation loss cannot by itself rank checkpoints, a point recent theory makes precise.
+We sharpen this into an identifiability limit: in the expansive, contact-rich regime, no metric
+computed from the policy and demonstrations alone can rank checkpoints by success, whereas a metric
+that queries the environment even once, such as an open-loop replay in simulation, can. This draws
+a line through the space of offline metrics by whether they touch the environment. We then provide
+the empirical calibration the field lacks: training Diffusion Policy and ACT across eight LIBERO and
+Robomimic tasks spanning short-to-long horizons and light-to-heavy contact, we score every
+checkpoint with eight metrics from both sides of that line against ground-truth success, and ask
+whether the gap follows the predicted regime dependence, which metrics recover success where
+validation loss fails, and whether a composite predictor generalizes to held-out tasks.
+% RESULTS SENTENCE — fill after the LIBERO/Robomimic run (none yet; the toy control study is
+% consistent with the prediction but is not a benchmark result):
 % "We find that open-loop replay fidelity recovers the deployment ranking validation loss
-%  discards, most strongly on long-horizon tasks, and selecting by it beats validation loss
-%  by <X> pp expected success."
+%  discards, most strongly on long-horizon tasks, beating validation-loss selection by <X> pp."
 To our knowledge this is the first identifiability characterization of offline policy-selection
 metrics by environment access, and the first systematic empirical calibration of such metrics
-against deployment success across modern visuomotor architectures and task regimes. The protocol
-is pre-registered, needs no robot hardware, and runs on consumer GPUs.
+against deployment success across modern visuomotor architectures. The protocol is pre-registered,
+needs no robot hardware, and runs on consumer GPUs.
 \end{abstract}
 
 \section{Introduction}
