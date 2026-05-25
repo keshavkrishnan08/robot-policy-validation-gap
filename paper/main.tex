@@ -6,8 +6,16 @@
 \documentclass[11pt]{article}
 \usepackage[margin=1in]{geometry}
 \usepackage{graphicx,booktabs,amsmath,hyperref,xcolor}
+\usepackage[round]{natbib}   % provides \citep/\citet, required by plainnat
 \graphicspath{{../figures/}}
 \input{results_macros.tex}   % \HoneGap, \HoneP, \HthreeBest, \HfourRel, \OutcomeTitle, ...
+
+% Render a figure if its PDF exists yet, else a labelled placeholder box. Lets the
+% pre-registered draft compile before the run produces figures.
+\newcommand{\figorbox}[2]{%
+  \IfFileExists{../figures/#1}{\includegraphics[width=#2\linewidth]{#1}}{%
+    \fbox{\parbox[c][0.30\linewidth][c]{#2\linewidth}{\centering\itshape
+    [figure generated after the experimental run]}}}}
 
 \title{The Validation Gap: When and Why Offline Metrics Fail to Predict Robot Policy Success}
 \author{Eswar Krishnan}
@@ -52,7 +60,7 @@ you cannot do it offline, run it.
 % PRD sections 7-8: tasks, Diffusion Policy, 8 metrics, rollout protocol.
 \input{sections/method.tex}
 
-\section{Results}
+\section{Pre-Registered Analysis and Expected Outcomes}
 \input{sections/results.tex}
 
 \section{Related Work}
@@ -60,6 +68,12 @@ you cannot do it offline, run it.
 
 \section{Limitations}
 \input{sections/limitations.tex}
+
+\section{Conclusion}
+\input{sections/conclusion.tex}
+
+\section*{Statements}
+\input{sections/statements.tex}
 
 \bibliographystyle{plainnat}
 \bibliography{references}

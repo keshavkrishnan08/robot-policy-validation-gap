@@ -1,62 +1,93 @@
-% All numbers are macros from results_macros.tex (generated from results.json).
-% Prose is written to read correctly once the macros are filled; conditional
-% phrasing is avoided in favour of the macro values themselves.
+% PRE-REGISTERED analysis + expected outcomes. No result is asserted as found;
+% macros (\HoneGap etc.) are placeholders filled by scripts/fill_paper.py after the
+% run. Figures render once produced (\figorbox falls back to a labelled box).
 
-\paragraph{H1: the gap.} Across \NRuns{} runs the median validation gap is \HoneGap{}
-percentage points (one-sided Wilcoxon $p = \HoneP$), which is \HoneSupported{} at the
-corrected threshold. Figure~\ref{fig:headline} plots val-selected against rollout-best
-success rate; points above the diagonal are runs where validation loss left performance on
-the table.
+We register the entire analysis before collecting a single rollout. The code that produces
+every quantity below is committed and hashed before training begins; nothing here can be
+chosen after seeing the data. This section states what each test computes, the decision rule
+that was fixed in advance, and what each outcome would establish.
+
+\paragraph{H1 --- does the gap exist?} For every run we take the checkpoint with the lowest
+validation L1 and the checkpoint with the highest measured success rate, and record the
+difference in success: the gap. A one-sided Wilcoxon signed-rank test across all \NRuns{}
+runs asks whether the median gap exceeds zero. We call H1 supported only if the median clears
+ten percentage points at the Bonferroni-corrected $\alpha = 0.0125$, and we report a
+bias-corrected bootstrap interval on the median. Figure~\ref{fig:headline} plots the
+validation-selected against the rollout-best success rate; every point that sits above the
+diagonal is performance that validation loss left on the table. \emph{Pre-registered slot:
+median gap \HoneGap{}~pp, $p = \HoneP{}$ (\HoneSupported{}).}
 
 \begin{figure}[t]\centering
-\includegraphics[width=0.6\linewidth]{fig1_headline_scatter.pdf}
-\caption{The validation gap. Each point is a training run: x is the success rate of the
-checkpoint chosen by validation loss, y is the best success rate across its checkpoints.}
+\figorbox{fig1_headline_scatter.pdf}{0.58}
+\caption{The validation gap. Each point is a training run: $x$ is the success rate of the
+checkpoint chosen by validation loss, $y$ is the best success rate across its checkpoints.
+Distance above the diagonal is the gap.}
 \label{fig:headline}
 \end{figure}
 
-\paragraph{H2: regime dependence.} The mixed-effects regime test gives $p = \HtwoP$
-(\HtwoSupported{}). Figure~\ref{fig:regime} breaks the gap down by horizon and complexity.
+\paragraph{H2 --- does the gap depend on regime?} We fit a linear mixed-effects model of the
+per-run gap on horizon and complexity, with a per-seed random intercept and architecture as a
+fixed effect, and test the regime terms by likelihood ratio against an architecture-only null.
+The pre-registered prediction is directional: long-horizon and contact-rich tasks should show
+larger gaps, because compounding has more steps to act on. \emph{Slot: $p = \HtwoP{}$
+(\HtwoSupported{}).}
 
-\paragraph{H3: a better metric.} The strongest alternative metric is \HthreeBest{} (mean
-signed Spearman \HthreeBestSpearman{}); H3 is \HthreeSupported{}. Figure~\ref{fig:heatmap}
-shows the full metric-by-task correlation structure.
+\paragraph{H3 --- can an offline metric beat validation loss?} For each run we compute the
+rank correlation between each of the eight offline metrics and success across that run's
+checkpoints, sign-oriented so positive always means predictive. A paired Wilcoxon test
+compares every alternative metric against validation L1, with an inner Bonferroni across the
+seven comparisons. H3 is supported if any metric beats validation L1 at the corrected
+threshold. \emph{Slot: strongest metric \HthreeBest{} (mean signed Spearman
+\HthreeBestSpearman{}); \HthreeSupported{}.}
 
-\paragraph{H4: generalisation.} The composite predictor reaches held-out RMSE
-\HfourCompRMSE{} against a validation-L1 baseline of \HfourBaseRMSE{}, a \HfourRel{} percent
-change; H4 is \HfourSupported{}. Figure~\ref{fig:calib} shows held-out calibration.
+\paragraph{H4 --- does a composite generalise across tasks?} A ridge predictor with
+cross-validated regularisation is fit on the six training tasks (pooling architectures and
+seeds) and evaluated on the two held-out tasks, locked before training. H4 is supported if its
+held-out RMSE is at least twenty percent below a validation-L1-only baseline; a
+leave-one-task-out sweep reports sensitivity to the split. \emph{Slot: composite RMSE
+\HfourCompRMSE{} vs baseline \HfourBaseRMSE{} (\HfourRel{}\% change; \HfourSupported{}).}
 
-\begin{figure}[t]\centering
-\includegraphics[width=0.48\linewidth]{fig2_correlation_heatmap.pdf}\hfill
-\includegraphics[width=0.48\linewidth]{fig3_regime_breakdown.pdf}
-\caption{Left: signed Spearman of each metric with success, per task. Right: the gap by
-task regime with bootstrap confidence intervals.}
-\label{fig:heatmap}\label{fig:regime}
-\end{figure}
+\paragraph{The coherence hypothesis (secondary).} The eight metrics split into signals of
+\emph{local accuracy} (validation L1, delta-MSE, action confidence) and signals of
+\emph{global coherence} (latent drift from the training manifold, open-loop replay fidelity,
+trajectory jerk). If the gap is born of compounding, the coherence group should track success
+better than the local group. We test the per-run difference in mean signed correlation with a
+one-sided Wilcoxon. This is the mechanistic claim behind the phenomenon, reported as
+exploratory rather than confirmatory.
 
-\begin{figure}[t]\centering
-\includegraphics[width=0.6\linewidth]{fig4_composite_calibration.pdf}
-\caption{Held-out composite-predictor calibration: predicted vs actual success rate on the
-two tasks the predictor never saw during fitting.}
-\label{fig:calib}
-\end{figure}
+\paragraph{Selection utility (secondary).} Rank correlation is not the same as usefulness. For
+each metric we simulate the policy that selecting checkpoints by that metric would have
+deployed, and report its expected and worst-decile success across runs. This answers the
+question a practitioner actually asks --- which signal, used as the selection rule, yields the
+best deployed policy --- rather than which signal merely correlates.
 
-\paragraph{Outcome.} Taken together the four tests place this study at: \emph{\OutcomeTitle{}}
-(\OutcomeAngle{}).
+\paragraph{The study cannot return an uninterpretable null.} The four hypotheses partition
+into distinct, citable conclusions (Table~\ref{tab:outcome}). A well-powered failure of H1
+would itself be a finding: validation loss is adequate, and the field's alarm is miscalibrated.
+With \NRuns{} runs the protocol has power above $0.95$ to detect a ten-point gap, so a null is
+evidence, not absence of it.
 
 \begin{table}[t]\centering\small
-\caption{Pre-registered outcome matrix. Every row is a citable conclusion.}
+\caption{Pre-registered outcome matrix. Each row is a conclusion the field can act on.}
 \label{tab:outcome}
 \begin{tabular}{llll}
 \toprule
 H1 & H2 & H3/H4 & Conclusion \\
 \midrule
-No & --- & --- & Validation loss is adequate (calibrates the alarm) \\
-Yes & Yes & Yes & An offline predictor of policy success \\
-Yes & Yes & No & Task-specific metrics; one predictor does not suffice \\
-Yes & Yes & H3 no & The horizon wall: a failure boundary \\
-Yes & No & Yes & Validation loss considered harmful: a universal predictor \\
-Yes & No & No & An impossibility result for offline selection \\
+No  & ---  & ---    & Validation loss is adequate; the alarm is miscalibrated \\
+Yes & Yes  & Yes    & A regime-aware offline predictor of policy success \\
+Yes & Yes  & H4 no  & Task-specific offline metrics; one predictor will not suffice \\
+Yes & Yes  & H3 no  & The horizon wall: a failure boundary, past which rollouts are required \\
+Yes & No   & Yes    & A regime-independent offline predictor \\
+Yes & No   & No     & An impossibility result that justifies rollout-based evaluation \\
 \bottomrule
 \end{tabular}
 \end{table}
+
+\paragraph{External validation against real-robot outcomes (planned).} To test whether the
+conclusions survive contact with hardware we never run, we compute the architecture-agnostic
+offline metrics on the public generalist policies in SIMPLER's comparison set and ask whether
+they predict the published \emph{real-world} success ranking better than validation MSE, whose
+real-success correlation SIMPLER reports at Pearson $r = 0.308$. This validates the
+cross-policy use of the metrics without new hardware; we are explicit that it does not test the
+within-run checkpoint gap, and we report it as corroboration.

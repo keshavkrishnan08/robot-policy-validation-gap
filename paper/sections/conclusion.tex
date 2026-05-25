@@ -1,0 +1,16 @@
+Validation loss became the default checkpoint-selection rule in robot learning by inheritance,
+not by argument. It works in supervised learning because a classifier is graded one example at
+a time, exactly what the loss measures. A policy is graded by a journey, and that is where the
+inheritance breaks: per-step errors the loss forgives compound into trajectories that leave the
+training manifold and fail. We have named this the validation gap and given it a calibration
+treatment borrowed from surrogate-endpoint validation, with a pre-registered protocol that
+fixes the tasks, two architectures, eight offline signals, rollout count, and analysis before
+any data is seen.
+
+The contribution does not depend on which way the data falls. If a coherence-based offline
+signal recovers the deployment ranking, training pipelines can drop a costly rollout sweep. If
+none does past a horizon threshold, the field has a calibrated reason to budget for rollouts
+exactly where it matters. Either way, practitioners gain a rule rather than a folk belief, and
+the released benchmark lets anyone test a new offline signal against ground-truth success
+without retraining. The broader lesson generalises beyond this study: stop grading sequential
+decision-makers one step at a time, and measure the property that deployment actually rewards.

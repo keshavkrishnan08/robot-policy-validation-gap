@@ -1,0 +1,33 @@
+% Mandatory statements (CoRL / general venue requirements).
+
+\paragraph{Reproducibility and code availability.} The full pipeline --- data adapters, both
+policy architectures, the eight offline metrics, the rollout harness, and the pre-registered
+analysis --- is released as an open, pip-installable package with a preflight readiness gate
+and a synthetic CPU path that reproduces every code path without a GPU. The analysis script and
+the configuration that fixes all pre-registered choices are committed and SHA-256-hashed before
+training begins; the hash is recorded in the project log. Each released artifact pairs every
+saved checkpoint with its offline metrics and its twenty-rollout success outcome, so a reader
+can evaluate a new offline metric against ground-truth success without retraining.
+
+\paragraph{Data availability.} All tasks use public simulation benchmarks (LIBERO and
+Robomimic) with publicly available demonstrations. No new datasets are collected. The external
+real-robot validation uses already-published policy checkpoints and success rates; we
+redistribute none of that data, only pointers to the original releases.
+
+\paragraph{Ethics.} The study is simulation-only and involves no human subjects, no personal
+data, and no physical robot deployment. We see no dual-use concern: the work makes policy
+evaluation more honest, not more capable. The main societal risk is misplaced trust in an
+offline metric, which the calibration framework is designed to prevent rather than create.
+
+\paragraph{AI-usage disclosure.} AI-assisted tools (a large language model) were used to help
+implement the codebase, conduct and verify the literature search, and draft and edit the
+manuscript. Every cited reference was verified against its primary source; the authors take
+full responsibility for all claims, the experimental design, and the final text. No
+experimental result reported here was produced by an AI tool.
+
+\paragraph{Author contributions (CRediT).} E.K.: conceptualization, methodology, software,
+formal analysis, writing --- original draft, writing --- review and editing.
+
+\paragraph{Funding.} This work received no external funding and used consumer-grade compute.
+
+\paragraph{Conflict of interest.} The authors declare no competing interests.
