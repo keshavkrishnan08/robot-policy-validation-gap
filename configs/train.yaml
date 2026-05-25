@@ -1,0 +1,48 @@
+# DRC CoRL 2026 — PRE-LOCKED training hyperparameters (PRD section 8.4).
+# Diffusion Policy defaults from Chi et al. 2023, LIBERO/Robomimic recipe.
+# Locked 2026-05-25. DO NOT EDIT after SA-2 begins.
+
+seeds: [0, 1, 2]
+checkpoint_epochs: [10, 25, 50, 75, 100, 150]
+num_epochs: 150
+
+optimizer:
+  name: adamw
+  lr: 1.0e-4
+  weight_decay: 1.0e-6
+batch_size: 64
+lr_scheduler: cosine          # cosine to zero
+ema:
+  enabled: true
+  decay: 0.9999
+
+# Diffusion Policy structure
+policy:
+  horizon: 16                 # prediction horizon
+  n_action_steps: 8           # action chunk
+  n_obs_steps: 2              # observation horizon
+  num_train_timesteps: 100    # DDPM steps for training
+  num_inference_steps: 16     # deterministic DDIM steps for sampling
+  beta_schedule: linear
+  crop_shape: [76, 76]        # random-crop augmentation target
+  obs_encoder: resnet18
+
+# Augmentation (PRD 8.4)
+augmentation:
+  random_crop_pad: 4
+  random_shift: true
+  color_jitter: false
+
+# Metric sampling counts (PRD section 8.1) — locked.
+metrics:
+  m1_K: 10        # deterministic prediction = mean of K denoise samples
+  m3_K: 20        # entropy proxy samples
+  m4_pca_components: 100
+  m4_shrinkage: ledoit_wolf
+  m8_K: 20        # confidence proxy samples
+
+# Rollout protocol (PRD 8.3) — locked.
+rollout:
+  n_rollouts: 20
+  ddim_noise_seed: 42
+  deterministic: true

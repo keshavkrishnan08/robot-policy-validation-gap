@@ -1,0 +1,28 @@
+\paragraph{Tasks.} Six simulator tasks span the regime space: LIBERO-Spatial-1,
+LIBERO-Object-1, LIBERO-Goal-1, and LIBERO-Long-1 from LIBERO~\citep{liu2023libero}, plus
+Robomimic-Square-PH and Robomimic-Transport-PH~\citep{mandlekar2021}. They range from short,
+single-object reaches to long, dual-arm, multi-stage manipulation. LIBERO-Object-1 and
+Robomimic-Transport-PH are held out for H4, locked before training.
+
+\paragraph{Policy.} A single architecture, Diffusion Policy~\citep{chi2023}: a 1D
+conditional U-net denoiser, ResNet-18 image encoder, proprioception concatenated, action
+chunk eight, prediction horizon sixteen, observation horizon two. Three seeds per task gives
+\NRuns{} runs. Checkpoints are saved at epochs 10, 25, 50, 75, 100, and 150, for
+\NCheckpoints{} checkpoints in total.
+
+\paragraph{The eight offline metrics.} M1 validation L1 (the baseline); M2 delta-action MSE;
+M3 action-distribution entropy; M4 latent Mahalanobis distance to the training distribution;
+M5 open-loop replay distance in simulation; M6 inter-seed prediction disagreement; M7
+trajectory jerk; M8 action confidence. They are mechanistically distinct on purpose:
+prediction error, distributional spread, representation drift, dynamics-aware replay,
+ensemble variance, and smoothness all probe different failure modes.
+
+\paragraph{Rollouts.} Twenty closed-loop rollouts per checkpoint on a fixed set of initial
+conditions shared across all checkpoints of a task. Deterministic DDIM sampling with a fixed
+noise seed removes within-checkpoint stochasticity, so the only variance is across the paired
+initial conditions. Success uses each benchmark's published success function.
+
+\paragraph{Analysis.} The analysis code is committed and hashed before training. H1 uses a
+paired Wilcoxon on per-run gaps; H2 a mixed-effects likelihood-ratio test; H3 paired Wilcoxon
+on per-run Spearman correlations with an inner Bonferroni; H4 a cross-validated ridge with a
+leave-one-task-out sensitivity check. A simulation-based power analysis is reported alongside.

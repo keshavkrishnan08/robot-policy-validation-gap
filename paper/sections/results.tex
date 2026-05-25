@@ -1,0 +1,62 @@
+% All numbers are macros from results_macros.tex (generated from results.json).
+% Prose is written to read correctly once the macros are filled; conditional
+% phrasing is avoided in favour of the macro values themselves.
+
+\paragraph{H1: the gap.} Across \NRuns{} runs the median validation gap is \HoneGap{}
+percentage points (one-sided Wilcoxon $p = \HoneP$), which is \HoneSupported{} at the
+corrected threshold. Figure~\ref{fig:headline} plots val-selected against rollout-best
+success rate; points above the diagonal are runs where validation loss left performance on
+the table.
+
+\begin{figure}[t]\centering
+\includegraphics[width=0.6\linewidth]{fig1_headline_scatter.pdf}
+\caption{The validation gap. Each point is a training run: x is the success rate of the
+checkpoint chosen by validation loss, y is the best success rate across its checkpoints.}
+\label{fig:headline}
+\end{figure}
+
+\paragraph{H2: regime dependence.} The mixed-effects regime test gives $p = \HtwoP$
+(\HtwoSupported{}). Figure~\ref{fig:regime} breaks the gap down by horizon and complexity.
+
+\paragraph{H3: a better metric.} The strongest alternative metric is \HthreeBest{} (mean
+signed Spearman \HthreeBestSpearman{}); H3 is \HthreeSupported{}. Figure~\ref{fig:heatmap}
+shows the full metric-by-task correlation structure.
+
+\paragraph{H4: generalisation.} The composite predictor reaches held-out RMSE
+\HfourCompRMSE{} against a validation-L1 baseline of \HfourBaseRMSE{}, a \HfourRel{} percent
+change; H4 is \HfourSupported{}. Figure~\ref{fig:calib} shows held-out calibration.
+
+\begin{figure}[t]\centering
+\includegraphics[width=0.48\linewidth]{fig2_correlation_heatmap.pdf}\hfill
+\includegraphics[width=0.48\linewidth]{fig3_regime_breakdown.pdf}
+\caption{Left: signed Spearman of each metric with success, per task. Right: the gap by
+task regime with bootstrap confidence intervals.}
+\label{fig:heatmap}\label{fig:regime}
+\end{figure}
+
+\begin{figure}[t]\centering
+\includegraphics[width=0.6\linewidth]{fig4_composite_calibration.pdf}
+\caption{Held-out composite-predictor calibration: predicted vs actual success rate on the
+two tasks the predictor never saw during fitting.}
+\label{fig:calib}
+\end{figure}
+
+\paragraph{Outcome.} Taken together the four tests place this study at: \emph{\OutcomeTitle{}}
+(\OutcomeAngle{}).
+
+\begin{table}[t]\centering\small
+\caption{Pre-registered outcome matrix. Every row is a citable conclusion.}
+\label{tab:outcome}
+\begin{tabular}{llll}
+\toprule
+H1 & H2 & H3/H4 & Conclusion \\
+\midrule
+No & --- & --- & Validation loss is adequate (calibrates the alarm) \\
+Yes & Yes & Yes & An offline predictor of policy success \\
+Yes & Yes & No & Task-specific metrics; one predictor does not suffice \\
+Yes & Yes & H3 no & The horizon wall: a failure boundary \\
+Yes & No & Yes & Validation loss considered harmful: a universal predictor \\
+Yes & No & No & An impossibility result for offline selection \\
+\bottomrule
+\end{tabular}
+\end{table}

@@ -1,0 +1,47 @@
+# DRC CoRL 2026 — PRE-LOCKED statistical analysis plan (PRD section 10).
+# Locked 2026-05-25 before any data collection. DO NOT EDIT.
+
+family_alpha: 0.05
+n_hypotheses: 4
+bonferroni_alpha: 0.0125          # 0.05 / 4
+
+# H3 has an inner Bonferroni across the 7 alternative-metric comparisons.
+h3_n_comparisons: 7
+h3_alpha: 0.0017857142857142857   # 0.0125 / 7
+
+bootstrap:
+  n_resamples: 10000
+  ci: 0.95
+  method: bca
+
+# Metric direction: which metrics are "lower is better" w.r.t. policy quality.
+# Used to sign-flip Spearman so a positive value always means "predictive".
+lower_is_better: [M1, M2, M4, M7]
+higher_is_better: [M3, M5, M6, M8]
+# Rationale per metric:
+#   M1 validation L1            lower better
+#   M2 delta MSE                lower better
+#   M3 action entropy           higher = more exploratory; treated as higher-is-better proxy
+#   M4 Mahalanobis distance     lower better (closer to train manifold)
+#   M5 open-loop replay dist    LOWER is better -> but we report -distance; see note
+#   M6 inter-seed disagreement  lower disagreement better -> reported sign handled in analysis
+#   M7 trajectory jerk          lower better
+#   M8 action confidence        higher better
+# NOTE: M5 and M6 are stored as raw distances/disagreements (lower better). The
+# analysis sign-flips by membership in lower_is_better. M5 and M6 are therefore
+# listed in lower_is_better at compute time; see analysis.LOWER_IS_BETTER which is
+# the authoritative list used by the code.
+
+# H1 thresholds
+h1:
+  median_gap_threshold_pct: 10.0   # median paired gap must exceed this
+h2:
+  effect_threshold_pct: 15.0       # well-powered only above this (see power.py)
+h3:
+  spearman_margin: 0.0             # any metric beating M1 with corrected p < alpha
+h4:
+  train_tasks: [LIBERO-Spatial-1, LIBERO-Goal-1, LIBERO-Long-1, Robomimic-Square-PH]
+  held_out_tasks: [LIBERO-Object-1, Robomimic-Transport-PH]
+  ridge_alphas: [0.01, 0.1, 1, 10, 100]
+  ridge_cv_folds: 5
+  rmse_improvement_threshold: 0.20  # composite RMSE must be >=20% below baseline

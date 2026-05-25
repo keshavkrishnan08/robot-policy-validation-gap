@@ -1,0 +1,30 @@
+Fix a training run: one task, one seed, a sequence of checkpoints. For each checkpoint we
+can compute offline metrics from the policy and the held-out demonstrations, and we can
+estimate a true success rate from closed-loop rollouts. Call the checkpoint that minimises
+validation L1 the \emph{val-selected} checkpoint, and the checkpoint with the highest
+measured success rate the \emph{rollout-best} checkpoint. The validation gap is the
+difference in success rate between them.
+
+We pre-register four hypotheses.
+
+\paragraph{H1 — the gap exists.} The val-selected checkpoint is reliably worse than the
+rollout-best checkpoint. We test the per-run gap with a one-sided Wilcoxon signed-rank test
+across all \NRuns{} runs, declaring support only if the median gap exceeds ten percentage
+points at the Bonferroni-corrected $\alpha = 0.0125$.
+
+\paragraph{H2 — the gap is regime-dependent.} Long-horizon and compositional tasks should
+show larger gaps than short, contact-light tasks, because long horizons compound small
+action errors that validation loss treats as equivalent. We fit a linear mixed-effects model
+with regime fixed effects and a per-seed random intercept, and test it by likelihood ratio.
+
+\paragraph{H3 — a better offline metric exists.} At least one of seven alternative metrics
+correlates with success rate better than validation L1, by per-run Spearman, with a paired
+Wilcoxon test Bonferroni-corrected across the seven comparisons.
+
+\paragraph{H4 — a composite predictor generalises.} A ridge regression over the eight
+metrics, fit on four tasks, predicts held-out success rate on two disjoint tasks with RMSE
+at least 20 percent below a validation-L1-only baseline.
+
+The four-hypothesis truth table maps onto distinct, citable conclusions (Table~\ref{tab:outcome}).
+Crucially, H1 failing is itself well-powered evidence that validation loss is adequate, not a
+power failure. The protocol is calibrated to the outcome, not engineered toward one.

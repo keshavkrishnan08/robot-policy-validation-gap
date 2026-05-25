@@ -1,0 +1,33 @@
+Teach a robot a manipulation skill from human demonstrations and you face a quiet
+decision with loud consequences. Training writes many checkpoints to disk. Only one gets
+deployed. Which one? Running every checkpoint on the robot is too expensive, so the field
+defaults to a cheap proxy: pick the checkpoint with the lowest validation loss on held-out
+expert actions. In image classification that proxy is near-perfect. In imitation learning
+it is not.
+
+The mismatch is not a secret. Robomimic~\citep{mandlekar2021} reported that the
+validation-loss-best checkpoint can be 50 to 100 percent worse than the best checkpoint you
+would have found with rollouts. ACT~\citep{zhao2023} adopted validation-loss selection as a
+working compromise, not a principled choice. SIMPLER~\citep{li2024} measured low correlation
+between validation error and real success. NeME~\citep{tiezzi2025} built a learned
+alternative for one task family. Each group noticed the gap in passing. None characterised it.
+
+That leaves three open questions. How big is the gap, and what makes it grow? Does any
+offline quantity, computable without rollouts, track success better than validation loss?
+And can a combination of such quantities generalise to tasks it was never tuned on? We
+answer all three with a pre-registered study.
+
+Here is the framing that organises the work. Validation loss is a surrogate endpoint;
+success rate is the true endpoint. Calibrating one against the other is exactly the exercise
+drug developers run when they ask whether LDL cholesterol predicts cardiovascular
+mortality~\citep{prentice1989}. The surrogate is cheap, the true endpoint is expensive, and
+the rigorous practice is to map one to the other across many situations. We import that
+discipline into robot learning.
+
+Our protocol is locked before any training: the tasks, the eight offline metrics, the
+rollout count, the held-out split, and the analysis code are fixed in advance and hashed.
+That matters because the result is publication-worthy whichever way it falls. If the gap is
+large and regime-dependent, the failure boundary is a finding. If an offline metric recovers
+the signal, training pipelines get cheaper. If none does, we have a calibrated negative
+result that justifies the cost of rollout-based evaluation. The outcome cannot be an
+uninterpretable null.

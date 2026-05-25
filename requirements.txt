@@ -1,0 +1,27 @@
+# DRC CoRL 2026 — runtime dependencies.
+# Analysis/dev box (CPU) needs only the top block. The Kaggle GPU run also needs
+# the simulation block. Pinned versions live in requirements_locked.txt.
+
+# --- analysis + model core (dev box) ---
+numpy>=1.24
+scipy>=1.11
+pandas>=2.0
+scikit-learn>=1.3
+statsmodels>=0.14
+matplotlib>=3.7
+PyYAML>=6.0
+torch>=2.1
+
+# --- simulation + data (Kaggle GPU only) ---
+# mujoco==3.1.6
+# robosuite==1.4.1
+# libero==1.0.0
+# robomimic==0.3.0
+# diffusers==0.27.0
+# h5py>=3.8
+# opencv-python-headless>=4.8
+# einops>=0.7
+# zarr>=2.17
+# dill>=0.3.8
+# hydra-core>=1.3
+# omegaconf>=2.3

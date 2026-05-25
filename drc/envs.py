@@ -1,0 +1,127 @@
+"""Environment factory exposing one rollout interface for every backend.
+
+Common interface used by drc/rollouts.py and metric M5:
+  reset_to(init_cond) -> obs
+  get_observation()    -> {"image": (1, n_obs, C, H, W), "proprio": (1, n_obs, P)}
+  step(action)         -> obs, reward, done, info{"success": bool}
+  eef_pose()           -> (3,) end-effector position
+  state_hash()         -> short deterministic hash of the reset state (SA-4 check)
+
+Synthetic backend lives in drc.data.synthetic; real backends wrap a Robosuite
+env and are only constructed on Kaggle.
+"""
+from __future__ import annotations
+
+import numpy as np
+
+
+def make_env(task_name: str, task_cfg: dict, synthetic: bool = False, n_obs_steps: int = 2):
+    if synthetic:
+        from drc.data.synthetic import SyntheticEnv
+
+        return SyntheticEnv(n_obs_steps=n_obs_steps, max_steps=task_cfg.get("max_steps", 60))
+    if task_cfg["suite"] == "libero":
+        return _LiberoEnv(task_cfg, n_obs_steps)
+    return _RobomimicEnv(task_cfg, n_obs_steps)
+
+
+class _RobosuiteEnvBase:
+    """Shared adapter turning a Robosuite obs dict into our stacked format."""
+
+    def __init__(self, n_obs_steps: int):
+        self.n_obs_steps = n_obs_steps
+        self._hist = []
+        self.env = None  # set by subclass
+
+    # subclasses implement _raw_obs_to_dict and _make_env / reset
+    def _push(self, raw):
+        self._hist.append(raw)
+        while len(self._hist) < self.n_obs_steps:
+            self._hist.insert(0, raw)
+        self._hist = self._hist[-self.n_obs_steps :]
+
+    def get_observation(self):
+        imgs = np.stack([o["image"] for o in self._hist], axis=0)[None]
+        pros = np.stack([o["proprio"] for o in self._hist], axis=0)[None]
+        return {"image": imgs.astype(np.float32), "proprio": pros.astype(np.float32)}
+
+    def state_hash(self):
+        import hashlib
+
+        st = self.env.sim.get_state().flatten()
+        return hashlib.sha256(np.asarray(st, dtype=np.float64).tobytes()).hexdigest()[:16]
+
+
+class _LiberoEnv(_RobosuiteEnvBase):  # pragma: no cover - Kaggle only
+    def __init__(self, task_cfg, n_obs_steps):
+        super().__init__(n_obs_steps)
+        from libero.libero import benchmark
+        from libero.libero.envs import OffScreenRenderEnv
+        from drc.data.libero_adapter import _resize
+
+        self._resize = _resize
+        bench = benchmark.get_benchmark_dict()[task_cfg["benchmark"]]()
+        task = bench.get_task(task_cfg["task_id"])
+        bddl = bench.get_task_bddl_file_path(task_cfg["task_id"])
+        self.env = OffScreenRenderEnv(bddl_file_name=bddl, camera_heights=128, camera_widths=128)
+        self.task = task
+
+    def _raw(self, obs):
+        img = self._resize(obs["agentview_image"][::-1])  # flip per LIBERO convention
+        pro = np.concatenate([obs["robot0_eef_pos"], obs["robot0_eef_quat"], obs["robot0_gripper_qpos"]])
+        return {"image": img, "proprio": pro.astype(np.float32), "eef": obs["robot0_eef_pos"]}
+
+    def reset_to(self, init_cond):
+        self.env.reset()
+        self.env.set_init_state(init_cond["state"])
+        obs = self.env.env._get_observations()
+        self._hist = []
+        self._push(self._raw(obs))
+        return self.get_observation()
+
+    def eef_pose(self):
+        return np.asarray(self._hist[-1]["eef"], dtype=np.float32)
+
+    def step(self, action):
+        obs, reward, done, info = self.env.step(np.asarray(action).reshape(-1))
+        self._push(self._raw(obs))
+        success = bool(self.env.check_success()) if hasattr(self.env, "check_success") else bool(done)
+        return self.get_observation(), reward, success or done, {"success": success}
+
+
+class _RobomimicEnv(_RobosuiteEnvBase):  # pragma: no cover - Kaggle only
+    def __init__(self, task_cfg, n_obs_steps):
+        super().__init__(n_obs_steps)
+        import robomimic.utils.env_utils as EnvUtils
+        import robomimic.utils.file_utils as FileUtils
+        import os
+        from drc.data.libero_adapter import _resize
+
+        self._resize = _resize
+        data_root = os.environ.get("ROBOMIMIC_DATA", "/kaggle/working/data/robomimic")
+        dataset = os.path.join(data_root, task_cfg["benchmark"], task_cfg["dataset"], "image.hdf5")
+        env_meta = FileUtils.get_env_metadata_from_dataset(dataset)
+        self.env = EnvUtils.create_env_from_metadata(env_meta, render=False, render_offscreen=True)
+        self._cam = "agentview"
+
+    def _raw(self, obs):
+        img = self._resize((obs[f"{self._cam}_image"] * 255).astype(np.uint8))
+        pro = np.concatenate(
+            [obs["robot0_eef_pos"], obs["robot0_eef_quat"], obs["robot0_gripper_qpos"]]
+        )
+        return {"image": img, "proprio": pro.astype(np.float32), "eef": obs["robot0_eef_pos"]}
+
+    def reset_to(self, init_cond):
+        obs = self.env.reset_to({"states": init_cond["state"]})
+        self._hist = []
+        self._push(self._raw(obs))
+        return self.get_observation()
+
+    def eef_pose(self):
+        return np.asarray(self._hist[-1]["eef"], dtype=np.float32)
+
+    def step(self, action):
+        obs, reward, done, info = self.env.step(np.asarray(action).reshape(-1))
+        success = bool(self.env.is_success()["task"])
+        self._push(self._raw(obs))
+        return self.get_observation(), reward, success or done, {"success": success}

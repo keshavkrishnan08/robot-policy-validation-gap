@@ -1,0 +1,15 @@
+Several groups have bumped into the validation gap without mapping it.
+Robomimic~\citep{mandlekar2021} reported the 50-to-100-percent discrepancy in a discussion
+section. ACT~\citep{zhao2023} used validation loss as a working default. SIMPLER
+\citep{li2024} measured weak correlation between validation error and real success, then
+turned to simulation-based evaluation rather than offline metrics. NeME~\citep{tiezzi2025}
+trained one alternative scorer for humanoid interaction. A line of work on rollout-based
+evaluation~\citep{vincent2024,snyder2026,vincent2026golden,anwar2025} accepts rollout cost
+and makes it efficient, sidestepping the offline question entirely.
+
+What no prior work does is the full job: measure the gap across regimes, compare a battery of
+offline metrics, test cross-task generalisation, frame it as surrogate-endpoint calibration,
+and ship a reproducible protocol. The biomarker-qualification literature
+\citep{prentice1989,buyse1998,joffe2009} gives the calibration vocabulary we borrow: a
+surrogate must show both individual-level and trial-level association with the true endpoint
+before anyone should trust it. That is precisely the question we put to validation loss.

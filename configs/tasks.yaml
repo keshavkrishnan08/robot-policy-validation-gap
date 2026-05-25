@@ -1,0 +1,81 @@
+# DRC CoRL 2026 — PRE-LOCKED task definitions.
+# Locked 2026-05-25 before any training. DO NOT EDIT after SA-2 begins.
+# Regimes drive the H2 mixed-effects model; held_out drives the H4 split.
+
+tasks:
+  LIBERO-Spatial-1:
+    suite: libero
+    benchmark: libero_spatial
+    task_id: 0
+    bddl: pick_up_the_black_bowl_between_the_plate_and_the_ramekin_and_place_it_on_the_plate
+    horizon: short          # {short, medium, long}
+    complexity: low         # {low, medium, high}
+    n_demos: 50
+    max_steps: 200
+    held_out: false
+
+  LIBERO-Object-1:
+    suite: libero
+    benchmark: libero_object
+    task_id: 0
+    bddl: pick_up_the_alphabet_soup_and_place_it_in_the_basket
+    horizon: short
+    complexity: medium
+    n_demos: 50
+    max_steps: 200
+    held_out: true          # H4 held-out (short horizon)
+
+  LIBERO-Goal-1:
+    suite: libero
+    benchmark: libero_goal
+    task_id: 0
+    bddl: open_the_middle_drawer_of_the_cabinet
+    horizon: medium
+    complexity: medium
+    n_demos: 50
+    max_steps: 500
+    held_out: false
+
+  LIBERO-Long-1:
+    suite: libero
+    benchmark: libero_10        # libero_long ships as libero_10
+    task_id: 0
+    bddl: put_both_the_alphabet_soup_and_the_tomato_sauce_in_the_basket
+    horizon: long
+    complexity: high
+    n_demos: 50
+    max_steps: 800
+    held_out: false
+
+  Robomimic-Square-PH:
+    suite: robomimic
+    benchmark: square
+    dataset: ph
+    horizon: medium
+    complexity: high            # contact-rich precise insertion
+    n_demos: 200
+    max_steps: 500
+    held_out: false
+
+  Robomimic-Transport-PH:
+    suite: robomimic
+    benchmark: transport
+    dataset: ph
+    horizon: long
+    complexity: high
+    n_demos: 200
+    max_steps: 800
+    held_out: true             # H4 held-out (long horizon)
+    fallback: Robomimic-Lift-PH  # SA-2 substitution if Transport fails to converge
+
+# Substitution target spec (only used if the risk-13.2 mitigation fires).
+fallback_tasks:
+  Robomimic-Lift-PH:
+    suite: robomimic
+    benchmark: lift
+    dataset: ph
+    horizon: long
+    complexity: medium
+    n_demos: 200
+    max_steps: 400
+    held_out: true

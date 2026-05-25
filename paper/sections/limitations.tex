@@ -1,0 +1,12 @@
+Three limits are worth stating plainly. First, the study is simulation-only. We argue the
+offline-to-online mapping is the very thing a real-robot user needs before committing to
+deployment evaluation, and sim-to-real correlation work supports that conclusions transfer in
+direction, but we do not run hardware. Second, one architecture. Diffusion Policy is the
+modal manipulation policy, yet the gap could behave differently for autoregressive or
+vision-language-action models; an ACT replication fits in one extra session and is the
+obvious next step. Third, statistical power. With three seeds and a Bonferroni-corrected
+$\alpha = 0.0125$, the protocol has roughly \PowerHone{} power to detect a ten-percentage-point
+gap and is well-powered only for larger effects; we report the realised power curve rather
+than a single optimistic figure, and we treat the weakest-powered test, H3, with
+corresponding caution. None of these undercuts the core deliverable: a locked, reproducible
+framework for asking whether an offline metric can be trusted.
