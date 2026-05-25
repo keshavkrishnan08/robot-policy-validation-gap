@@ -7,9 +7,18 @@ trained one alternative scorer for humanoid interaction. A line of work on rollo
 evaluation~\citep{vincent2024,snyder2026,vincent2026golden,anwar2025} accepts rollout cost
 and makes it efficient, sidestepping the offline question entirely.
 
-What no prior work does is the full job: measure the gap across regimes, compare a battery of
-offline metrics, test cross-task generalisation, frame it as surrogate-endpoint calibration,
-and ship a reproducible protocol. The biomarker-qualification literature
+Two recent efforts come closest and must be distinguished. RoboEval~\citep{roboeval2025}
+augments binary success with richer behavioural metrics (coordination, trajectory smoothness,
+spatial precision) and shows they correlate with success across many tasks --- but those
+metrics are measured \emph{during closed-loop execution}. We ask the opposite question:
+whether any signal computable \emph{without} a rollout recovers success. A parallel cluster of
+work makes rollout-based evaluation cheap and rigorous and thereby accepts its
+cost~\citep{patil2026golden,snyder2026,vincent2024}; our study is the complement, testing
+whether rollouts can be avoided at all.
+
+What no prior work does is the full job on the offline side: measure the no-rollout gap across
+regimes, compare a battery of offline metrics, test cross-task generalisation, frame it as
+surrogate-endpoint calibration, and ship a reproducible protocol. The biomarker-qualification literature
 \citep{prentice1989,buyse1998,joffe2009} gives the calibration vocabulary we borrow: a
 surrogate must show both individual-level and trial-level association with the true endpoint
 before anyone should trust it. That is precisely the question we put to validation loss.
