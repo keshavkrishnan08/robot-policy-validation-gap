@@ -22,19 +22,37 @@ with success. Scope: controlled validation of the mechanism, NOT a real-robot re
 
 ---
 
-## Part B — real manipulation calibration (the core study). 3–4 Kaggle dual-T4 sessions.
+## GPU note (read first): using both T4s
+A single Python process only uses `cuda:0` — that is why "the second T4 won't activate." To use
+both you must run **one process per GPU**, which the session scripts do (pinning via
+`CUDA_VISIBLE_DEVICES`). On Kaggle: Settings → Accelerator → **GPU T4 x2**. The scripts print
+`torch sees N GPU(s)` at the start — confirm it says **2** before committing the session; if it
+says 1, the accelerator is set wrong (or you have a single T4) and the run falls back to serial.
+
+**Timing (estimates, ±50%):**
+| Hardware | seeds | runs | training | total | sessions |
+|----------|-------|------|----------|-------|----------|
+| dual T4 (both active) | 3 | 48 | ~12h | ~17h | ~2 |
+| dual T4 (both active) | 2 | 32 | ~8h  | ~12h | ~1–2 |
+| single T4 | 2 | 32 | ~16–22h | ~22–28h | ~3 |
+| single T4 | 3 | 48 | ~24–32h | ~33–40h | ~3–4 (2 weeks of quota) |
+
+Recommendation: dual T4 + 3 seeds (n=48, power 0.985). If only one T4 activates, set
+`SEEDS="0 1"` (n=32, power 0.90) — and change the paper's seed/run/power numbers to match.
+
+## Part B — real manipulation calibration (the core study).
 8 LIBERO/Robomimic tasks x {Diffusion Policy, ACT} x 3 seeds; 8 metrics; 20 rollouts (K=1).
 Per-task interleave with checkpoint pruning keeps peak storage ~5GB.
 ```bash
-# Session 1 (LIBERO):    setup + download + train/metrics/rollouts/prune per task
-bash scripts/run_session1.sh
+# Session 1 (LIBERO): auto-detects GPUs, one process per GPU, per-task train/metrics/rollouts/prune
+bash scripts/run_session1.sh            # or:  SEEDS="0 1" bash scripts/run_session1.sh  (single T4)
 # Session 2 (Robomimic): same
 bash scripts/run_session2.sh
-# L-hat per task (reuses perturbation rollouts) + analysis + figures + paper macros
-python scripts/05_analysis.py
-python scripts/fill_paper.py
+python scripts/05_analysis.py && python scripts/fill_paper.py
 ```
-To trim to ~18h: set `seeds: [0, 1]` in `configs/train.yaml` (N=32 runs, power ~0.95).
+If a 12h session times out mid-run, just relaunch — completed tasks are saved (CSV append-merge),
+and you can resume the rest with `03_metrics.py --tasks <name>` etc. or by re-running (trained
+tasks are pruned, so re-run only the remaining ones).
 
 The headline figures (gap vs amplification on real tasks; metric-class vs L_hat) come from
 the per-task L_hat estimate (`drc/lyapunov.py`) joined with the gap/Spearman tables.
