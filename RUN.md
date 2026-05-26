@@ -3,6 +3,11 @@
 Lean design (~18–20h; see `EXPERIMENTAL_DESIGN.md`). Each part is independently shippable;
 do them in order, and the paper gets stronger after each.
 
+**On Kaggle, use the notebooks** (`notebooks/`, one per stage, each pulls the code from GitHub):
+`00_smoke_test` (CPU) → `01_session1_libero` → `02_session2_robomimic` → `03_partC_external`.
+See `notebooks/README.md` for the GitHub-push and `REPO_URL` setup. The commands below are the
+equivalent CLI for a local/own-GPU run.
+
 ## Pre-flight (every session, seconds, CPU)
 ```bash
 python scripts/preflight.py        # 9-point readiness gate
