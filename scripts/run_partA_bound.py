@@ -66,7 +66,7 @@ def main():
 
     print("\n===== Part A: numerical validation of the bound (controlled) =====")
     print(f"P1 bound tightness:  R^2 = {r2:.5f},  max relative error = {rel_err:.2e}")
-    print(f"   -> measured deviation matches eps*(L^H-1)/(L-1); the H/L scaling is exact, not loose.")
+    print("   -> measured deviation matches eps*(L^H-1)/(L-1); the H/L scaling is exact, not loose.")
     print(f"P2 identifiability (across {p2['n_policies']} policies with varying eps,L; "
           f"success rate {p2['success_rate']:.2f}):")
     print(f"   |corr(validation loss, success)|      = {p2['val_loss_corr_pooled']:.3f}  (rollout-free)")
