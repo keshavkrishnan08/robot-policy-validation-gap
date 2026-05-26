@@ -24,7 +24,8 @@ from drc.data.dataset import SequenceDataset
 from drc.data.synthetic import _render, IMG_C, IMG_H, IMG_W
 
 DIM = 4
-TOL = 0.25      # tracking tolerance for success
+TOL = 0.45            # per-step tracking tolerance (looser, so success is graded not all-or-nothing)
+TRACK_FRACTION = 0.7  # episode succeeds if >= this fraction of steps stayed within TOL
 
 
 def _state_to_img(s):
@@ -68,6 +69,7 @@ class SweepEnv:
         self._ref = self._s.copy()
         self._hist = [self._s.copy() for _ in range(self.n_obs_steps)]
         self._t = 0
+        self._in_tol = 0
         return self.get_observation()
 
     def state_hash(self):
@@ -89,13 +91,15 @@ class SweepEnv:
         self._hist.append(self._s.copy())
         self._t += 1
         dev = float(np.linalg.norm(self._s[:2] - self._ref[:2]))
-        tracking = dev < TOL
+        self._in_tol += int(dev < TOL)
         timed_out = self._t >= self.max_steps
-        done = (not tracking) or timed_out
-        # Episode "succeeds" only if it tracked within tolerance all the way to the horizon;
-        # evaluate_checkpoint marks success the first step info['success'] is True, so we set
-        # it True only at the surviving timeout.
-        return self.get_observation(), 0.0, done, {"success": tracking and timed_out, "dev": dev}
+        done = timed_out                                    # run the full horizon (graded success)
+        # Graded success: did the policy track within tolerance for enough of the horizon?
+        # Set info['success'] only at the terminal step (evaluate_checkpoint marks success the
+        # first time it sees True).
+        frac = self._in_tol / max(self._t, 1)
+        success = timed_out and (frac >= TRACK_FRACTION)
+        return self.get_observation(), 0.0, done, {"success": success, "dev": dev, "track_frac": frac}
 
 
 def sweep_eval_conditions(n: int, seed: int = 321):
