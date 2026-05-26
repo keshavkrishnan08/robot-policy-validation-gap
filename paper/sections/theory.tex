@@ -76,6 +76,31 @@ fixes the outcome and the success rates separate by $\Omega(1)$. A rollout-free 
 $\zeta$ difference on $d^\star$; an environment-querying metric observes the off-manifold divergence.
 \end{proof}
 
+\paragraph{Controlled validation.}
+We confirm both halves on a linear system that exactly meets the assumptions (reference
+$s^\star_{t+1}=L s^\star_t$; a policy injects per-step error $\varepsilon$). First, the bound is
+tight: across gains $L\in[0.6,1.2]$ and errors $\varepsilon$, the measured closed-loop deviation
+equals $\varepsilon\,(L^H-1)/(L-1)$ to machine precision ($R^2 = 1.0$, Fig.~\ref{fig:bound}, left),
+so the $H$/$L$ scaling is exact rather than a loose worst case. Second, the identifiability
+consequence: across $600$ policies whose error $\varepsilon_i$ and gain $L_i$ vary independently,
+deployment success is governed by $\varepsilon_i\,(L_i^H-1)/(L_i-1)$. Validation loss, which sees
+only $\varepsilon_i$, correlates just $0.31$ with success, while an open-loop replay, which measures
+the accumulated deviation, correlates $0.84$ (Fig.~\ref{fig:bound}, right). Within a fixed gain
+band validation loss is informative ($0.68$); pooled across varying gain it is not ($0.31$) ---
+exactly the failure Proposition~\ref{prop:imposs} predicts. This is a controlled validation of the
+mechanism on a system satisfying the assumptions; whether it governs real manipulation is the
+empirical question Part~B answers.
+
+\begin{figure}[t]\centering
+\figorbox{partA/figA1_bound_tightness.pdf}{0.46}\hfill
+\figorbox{partA/figA2_identifiability.pdf}{0.46}
+\caption{Controlled validation. Left (P1): measured closed-loop deviation equals the predicted
+$\varepsilon\,(L^H-1)/(L-1)$ ($R^2=1.0$). Right (P2): across policies of varying closed-loop gain,
+validation loss correlates only $0.31$ with success while an environment-querying replay correlates
+$0.84$.}
+\label{fig:bound}
+\end{figure}
+
 This is a selection-theoretic reading of the long-known insufficiency of expert-distribution data
 \citep{ross2011reduction,simchowitz2025pitfalls}; what we take from it is the \emph{line it draws
 through our metric set}. It predicts that in contact-rich, long-horizon tasks ($L>1$, large $H$) no

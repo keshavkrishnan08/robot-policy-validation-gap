@@ -10,19 +10,15 @@ python scripts/preflight.py        # 9-point readiness gate
 
 ---
 
-## Part A — controlled L-sweep (validates the theory). CPU, ~2h, no GPU.
-Confirms P1 (gap tracks the (L^H-1)/(L-1) amplification) and P2 (rollout-free metrics lose
-ranking power past L=1; environment-querying metrics keep it). Produces figs 5 and 6.
+## Part A — controlled validation of the bound (DONE). CPU, seconds, no GPU.
+Numerical validation on a linear system meeting the bound's assumptions.
 ```bash
-python scripts/run_partA_sweep.py --L 0.7,0.85,0.95,1.0,1.05,1.15 --seeds 3 --epochs 5,15,40,80
-# outputs: results/sweep_summary.csv, figures/partA/fig5_*, fig6_*
+python scripts/run_partA_bound.py
+# -> results/partA_bound.json ; figures/partA/figA1_bound_tightness.pdf, figA2_identifiability.pdf
 ```
-NOTE: the code path is verified end-to-end, but the *trend* (P1/P2) only emerges with enough
-epochs to reach intermediate (non-saturated) success rates — a tiny smoke run gives degenerate
-all-fail/all-zero output. Use ≥4 checkpoints reaching partial success, and keep L near 1 (0.7–1.2)
-so the amplification axis stays readable. Tune epochs until mid-L tasks show success in (0,1),
-then the gap/curve and the rollout-free collapse become visible. This is controlled validation of
-the theory's form, not a benchmark result.
+Results: P1 bound tightness R^2=1.0; P2 identifiability val-loss 0.31 vs replay 0.84 correlation
+with success. Scope: controlled validation of the mechanism, NOT a real-robot result (that is Part B).
+(The earlier image-based `run_partA_sweep.py` is superseded — its bounded-image task saturated for L>1.)
 
 ---
 

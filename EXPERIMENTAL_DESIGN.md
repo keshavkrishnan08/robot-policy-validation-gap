@@ -21,20 +21,20 @@ past $L\approx 1$ while M5 stays high.
 
 ---
 
-## ⚠️ Part A status (CPU run attempted 2026-05-25): controlled system needs redesign
-A full CPU run was executed. **It did not yet produce an informative regime**, for a concrete,
-diagnosed reason: the current realization renders state into a bounded ([-1,1]) image, so for
-$L>1$ both the divergent expert reference and the policy saturate at the boundary, which makes
-tracking trivially easy (both pinned to the edge) instead of exhibiting compounding. For $L<1$
-the tiny policy converges immediately, so there is no within-run learning curve and hence no gap.
-Net: success was ~0.69 (flat) at $L{=}0.7$ and ~0 for $L{\ge}0.95$ — degenerate.
-
-**This is a task-design problem, not evidence against the theory.** A correct realization should
-measure deviation in an *unbounded* coordinate (render a bounded view of an unbounded state, or use
-a 1-D linear system with deviation tracked analytically) and induce a learning curve (harder
-target map, earlier checkpoints, or limited capacity). Treat Part A as needing a redesign pass
-before it can validate P1/P2; until then the theory rests on its derivation and prior literature,
-and the empirical evidence comes from Part B. Do not report the current Part A output as a result.
+## ✅ Part A status (redesigned 2026-05-25): DONE, clean results
+The first realization (image policy on a saturating tracking task) was degenerate — for $L>1$ the
+bounded-image state saturated, trivializing tracking. **Redesigned** as a faithful numerical
+validation on a linear system that exactly meets the bound's assumptions (`drc/bound_validation.py`,
+`scripts/run_partA_bound.py`). Real results (`results/partA_bound.json`, CPU, seconds):
+- **P1 — bound tightness:** measured deviation $=\varepsilon(L^H-1)/(L-1)$ to machine precision,
+  $R^2 = 1.0$. The H/L scaling is exact, not loose.
+- **P2 — identifiability:** across 600 policies with independent $(\varepsilon_i, L_i)$, validation
+  loss correlates $0.31$ with success while an environment-querying replay correlates $0.84$;
+  within a fixed gain band validation loss works ($0.68$), pooled across gains it fails ($0.31$).
+- Figures: `figures/partA/figA1_bound_tightness.pdf`, `figA2_identifiability.pdf`. In the paper §4.
+- **Scope:** controlled validation of the mechanism on a system meeting the assumptions; NOT a
+  real-robot result. The manipulation evidence is Part B. The old image-sweep
+  (`run_partA_sweep.py`) is superseded but kept.
 
 ## Part A — Controlled $L$-sweep (validates the theory cleanly). ~CPU, near-free.
 On real tasks $L$ is unknown and confounded with everything else, so you cannot test P1 in
