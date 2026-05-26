@@ -78,6 +78,14 @@ def main():
     f3 = os.path.join(figdir, "figA3_selection_regret.pdf")
     fig.savefig(f3, bbox_inches="tight"); plt.close(fig)
 
+    # ---- Thm 2 gamma-sensitivity: replay regret -> 0 as approximation error -> 0 ----
+    gamma_sweep = []
+    for g in [0.0, 0.05, 0.2, 0.5, 1.0]:
+        s = selection_regret(n_populations=8000, K=6, H=18, tol=1.0,
+                            eps_range=(0.02, 0.03), L_range=(0.7, 1.35), replay_noise=g, seed=0)
+        gamma_sweep.append({"gamma": g, "replay_regret": s["regret_replay"],
+                            "val_loss_regret": s["regret_val_loss"]})
+
     # ---- Cor 1: the horizon wall ----
     hw = horizon_wall(L=1.15, eps=0.03, tol=1.0, H_max=40)
     Hs = [c["H"] for c in hw["curve"]]
@@ -93,8 +101,9 @@ def main():
     f4 = os.path.join(figdir, "figA4_horizon_wall.pdf")
     fig.savefig(f4, bbox_inches="tight"); plt.close(fig)
 
-    save_json({"p1_r2": r2, "p1_max_rel_err": rel_err, "p2": p2,
-               "selection_regret": sr, "horizon_wall": {k: v for k, v in hw.items() if k != "curve"}},
+    save_json({"p1_r2": r2, "p1_max_rel_err": rel_err, "p2": p2, "selection_regret": sr,
+               "gamma_sweep": gamma_sweep,
+               "horizon_wall": {k: v for k, v in hw.items() if k != "curve"}},
               path("results", "partA_bound.json"))
 
     print("\n===== Part A: numerical validation of the bound (controlled) =====")
@@ -112,6 +121,8 @@ def main():
     print(f"   oracle={sr['rates']['oracle']:.3f}  replay(env)={sr['rates']['replay']:.3f}  "
           f"val_loss(rollout-free)={sr['rates']['val_loss']:.3f}  random={sr['rates']['random']:.3f}")
     print(f"   regret: val_loss={sr['regret_val_loss']:.3f} (~random), replay={sr['regret_replay']:.3f} (oracle)")
+    print("Thm2 gamma-sensitivity (replay regret -> 0 as approximation error -> 0):")
+    print("   " + "  ".join(f"g={r['gamma']}:{r['replay_regret']:.3f}" for r in gamma_sweep))
     print(f"Cor1 horizon wall: H* predicted={hw['H_star_predicted']:.1f}, empirical={hw['H_star_empirical']}")
     log.info(f"figures: {os.path.basename(f1)}, {os.path.basename(f2)}, "
              f"{os.path.basename(f3)}, {os.path.basename(f4)}")

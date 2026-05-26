@@ -65,8 +65,10 @@ def c2_task_table():
 
 
 def c3_adapter_routing():
-    from drc.data import libero_adapter, robomimic_adapter  # import-only (heavy deps lazy)
+    from drc.data import libero_adapter, robomimic_adapter
 
+    assert hasattr(libero_adapter, "load_libero_dataset"), "LIBERO loader missing"
+    assert hasattr(robomimic_adapter, "load_robomimic_dataset"), "Robomimic loader missing"
     tasks = config.load_tasks()
     for t, v in tasks.items():
         if v["suite"] == "robomimic":
@@ -100,8 +102,9 @@ def c4_both_architectures():
 
 
 def c5_env_factory():
-    from drc.envs import make_env, _LiberoEnv, _RobomimicEnv  # noqa: F401  import-only
+    from drc.envs import make_env, _LiberoEnv, _RobomimicEnv
 
+    assert _LiberoEnv is not None and _RobomimicEnv is not None  # real env classes importable
     tasks = config.load_tasks()
     env = make_env("LIBERO-Spatial-1", tasks["LIBERO-Spatial-1"], synthetic=True)
     env.reset_to({"state": np.array([-0.5, -0.5, 0, 0], dtype=np.float32)})

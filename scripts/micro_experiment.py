@@ -24,7 +24,7 @@ from drc.data.dataset import collate
 from drc.data.synthetic import make_synthetic_dataset, make_eval_conditions, expert_episode, _render
 from drc.envs import make_env
 from drc.rollouts import evaluate_checkpoint
-from drc.train import build_policy, load_policy, train_run
+from drc.train import load_policy, train_run
 from drc.utils import ckpt_path, get_logger
 from drc import config
 
@@ -116,13 +116,13 @@ def main():
         print(f"  {m}: {st[m].mean():+.3f}")
 
     coh = analysis.coherence_hypothesis_analysis(analysis.h3_analysis(df))
-    print(f"\n===== Coherence vs local =====")
+    print("\n===== Coherence vs local =====")
     print(f"  local (M1,M2,M8) mean rho:     {coh['mean_spearman_local']:+.3f}")
     print(f"  coherence (M4,M5,M7) mean rho: {coh['mean_spearman_coherence']:+.3f}")
     print(f"  coherence - local: {coh['mean_diff_coherence_vs_local']:+.3f}")
 
     sel = analysis.causal_selection_analysis(df)
-    print(f"\n===== Selection utility =====")
+    print("\n===== Selection utility =====")
     print(f"  best selection metric: {sel['best_selection_metric']} "
           f"(expected success {sel['best_expected_success_pct']:.1f}%)")
     print(f"  validation-L1 selection: {sel['M1_expected_success_pct']:.1f}%  "

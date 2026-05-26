@@ -32,6 +32,33 @@
     "tol": 1.0,
     "n_populations": 6000
   },
+  "gamma_sweep": [
+    {
+      "gamma": 0.0,
+      "replay_regret": 0.0,
+      "val_loss_regret": 0.36675
+    },
+    {
+      "gamma": 0.05,
+      "replay_regret": 0.0,
+      "val_loss_regret": 0.36675
+    },
+    {
+      "gamma": 0.2,
+      "replay_regret": 0.0008750000000000702,
+      "val_loss_regret": 0.36675
+    },
+    {
+      "gamma": 0.5,
+      "replay_regret": 0.009875000000000078,
+      "val_loss_regret": 0.36675
+    },
+    {
+      "gamma": 1.0,
+      "replay_regret": 0.044875,
+      "val_loss_regret": 0.36675
+    }
+  ],
   "horizon_wall": {
     "L": 1.15,
     "eps": 0.03,
