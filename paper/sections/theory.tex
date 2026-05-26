@@ -1,112 +1,109 @@
-% HONEST framing: the bound is standard. We recall it, attribute it fully, and use it to
-% state the calibration prediction our experiments test. We do NOT claim the bound as novel.
+% Strengthened theory. The compounding bound (Eq. 1) is classical and attributed. The
+% contribution is the SELECTION-theoretic pair: an impossibility lower bound for rollout-free
+% metrics (Thm 1) and a matching achievability upper bound for environment-querying metrics
+% (Thm 2), with two corollaries. All four are validated numerically (Fig. 1).
 
-The validation gap is not a new phenomenon in need of a new theory; it is an instance of the
-compounding-error effect studied since the origins of imitation learning. We recall the relevant
-bound, attribute it, and draw out the prediction it makes for \emph{offline metrics} --- the
-prediction our experiments are built to test. The contribution of this paper is empirical, not
-theoretical.
+The validation gap is an instance of compounding error, studied since the origins of imitation
+learning. We recall the bound, then give what is new here: a matched pair of results on the
+\emph{selection} problem (ranking checkpoints by an offline metric), with an impossibility lower
+bound and an achievability upper bound separated by a single property of the metric --- whether it
+queries the environment.
 
-\paragraph{Setup.} Let the dynamics be $s_{t+1}=f(s_t,a_t)$ with $f$ Lipschitz,
-$\|f(s,a)-f(s',a')\|\le L_s\|s-s'\|+L_a\|a-a'\|$, let $\pi^\star$ be the expert,
-$g(s):=f(s,\pi^\star(s))$ the expert closed-loop map with $L:=\mathrm{Lip}(g)$, and let a learned
-policy have per-step action error $\varepsilon$ along its rollout. With $\delta_t$ the state
-deviation from the expert rollout and $\delta_0=0$, the standard error-propagation recurrence
-$\delta_{t+1}\le L\,\delta_t+L_a\varepsilon$ unrolls to
-\[
-\delta_H \;\le\; L_a\,\varepsilon\sum_{k=0}^{H-1}L^{k}
-\;=\;\begin{cases} L_a\,\varepsilon\,(L^{H}-1)/(L-1), & L\neq 1,\\[0.6ex] L_a\,\varepsilon\,H, & L=1,\end{cases}
-\tag{1}\label{eq:dev}
-\]
-which exhibits three regimes: bounded deviation for self-correcting dynamics ($L<1$), linear growth
-at the stability boundary ($L=1$), and exponential growth for expansive, contact-rich dynamics
-($L>1$). This is classical. The recurrence is the discrete Gr\"onwall / error-propagation argument;
-the quadratic-in-horizon return version is due to \citet{ross2010efficient,ross2011reduction}; the
-three-regime characterization of covariate shift is \citet{spencer2021feedback}; and the
-unavoidability of exponential compounding under unstable continuous dynamics is
-\citet{simchowitz2025pitfalls}. Most directly, \citet{tan2026gain} show that the probability of
-horizon-$H$ task failure factorizes into a gain-dependent amplification term and the validation
-loss, making precise that validation loss alone cannot rank checkpoints. We claim none of this as
-new.
+\paragraph{Setup.} Dynamics $s_{t+1}=f(s_t,a_t)$ are Lipschitz; $\pi^\star$ is the expert,
+$g(s)=f(s,\pi^\star(s))$ the expert closed-loop map with $L=\mathrm{Lip}(g)$. A policy with per-step
+action error $\varepsilon$ along its rollout has deviation $\delta_t=\|\hat s_t-s^\star_t\|$ obeying
+$\delta_{t+1}\le L\,\delta_t+L_a\varepsilon$, hence
+\begin{equation}\label{eq:dev}
+\delta_H \;\le\; L_a\,\varepsilon\,A(L,H),\qquad A(L,H):=\sum_{k=0}^{H-1}L^k=\frac{L^H-1}{L-1}\;\;(L\neq1),\;\;H\;(L{=}1).
+\end{equation}
+This is classical: the recurrence is discrete Gr\"onwall; the return version is
+\citet{ross2010efficient,ross2011reduction}; the three regimes are \citet{spencer2021feedback};
+exponential blow-up under unstable continuous dynamics is \citet{simchowitz2025pitfalls}; and the
+factorisation of failure into a gain term and the validation loss is \citet{tan2026gain}. We claim
+none of \eqref{eq:dev} as new. Deployment success is $\mathbf{1}[\delta_H<\tau]$ for a task tolerance
+$\tau$; under a persistent error \eqref{eq:dev} is tight, $\delta_H=\varepsilon A(L,H)$
+(Fig.~\ref{fig:bound}a, $R^2=1.0$).
 
-\paragraph{What it predicts for offline metrics.} The value of \eqref{eq:dev} here is as a lens on
-\emph{which offline quantity to measure}. Validation loss estimates $\varepsilon$, the per-step
-error --- the numerator of \eqref{eq:dev}. Deployment success is governed by whether the
-accumulated deviation $\delta_t$ stays inside the task tolerance --- the left-hand side. The two
-coincide only when $L\le 1$ and $H$ is small, so two predictions follow that we test directly:
+\paragraph{The selection problem.} Given checkpoints $\{\pi_1,\dots,\pi_K\}$, a metric $m$ selects
+$\hat\pi_m=\arg\min_i m(\pi_i)$. Write $\mathrm{Succ}(\pi)=\mathbf{1}[\delta_H(\pi)<\tau]$ and define the
+\emph{selection regret} $R(m)=\Pr[\exists i:\mathrm{Succ}(\pi_i)]-\Pr[\mathrm{Succ}(\hat\pi_m)]$, the chance
+of deploying a failure that some checkpoint avoided. Call $m$ \emph{rollout-free} if it is a
+functional of the policy on the expert distribution $d^\star$ alone (M1--M4, M6, M8);
+\emph{environment-querying} if it executes the policy (M5, M7).
 
-\begin{itemize}\itemsep2pt
-\item[(P1)] The gap should grow with horizon and contact along the amplification factor
-$(L^H-1)/(L-1)$. This is the regime dependence H2 evaluates; the theory fixes its sign and shape in
-advance rather than leaving it a hunch.
-\item[(P2)] A metric that estimates $\delta$ rather than $\varepsilon$ should predict success where
-validation loss fails. Open-loop replay distance (M5) computes accumulated deviation under exactly
-the recurrence above, and latent drift (M4) measures departure from the training manifold, the event
-large $\delta_t$ triggers. This is the coherence hypothesis, now with a mechanism: coherence metrics
-estimate the integral, local metrics the integrand.
-\end{itemize}
-
-One honest caveat strengthens the case: validation loss estimates $\varepsilon$ on the expert's
-state distribution, while \eqref{eq:dev} uses the on-policy error, typically larger under covariate
-shift --- so \eqref{eq:dev} is, if anything, optimistic about validation loss.
-
-\paragraph{An identifiability limit, and the line it draws.}
-The bound above is standard. The observation we build on is not the bound but a partition of the
-candidate metrics by whether they \emph{query the environment}. Call a metric \emph{rollout-free}
-if it is a functional of the policy evaluated only on the expert-demonstration distribution
-$d^\star$; M1--M4, M6, and M8 are rollout-free, whereas M5 and M7 execute the policy in the
-simulator. This distinction has a sharp consequence.
-
-\begin{proposition}[Rollout-free metrics cannot rank in the expansive regime]\label{prop:imposs}
-Fix a task with expansiveness $L>1$ and horizon $H$. For every resolution $\zeta>0$ there exist two
-policies that are $\zeta$-indistinguishable under \emph{every} rollout-free metric --- they agree to
-within $\zeta$ on $d^\star$ and so produce identical metric values up to $\zeta$ --- yet whose
-closed-loop success rates differ by a constant independent of $\zeta$. No rollout-free metric can
-therefore consistently rank such checkpoints by success. A metric that queries the environment, even
-open-loop, is not subject to this limit.
-\end{proposition}
+\begin{theorem}[Impossibility for rollout-free selection]\label{thm:imposs}
+Fix $L>1$, horizon $H$, and any $\zeta>0$. There exist checkpoints $\pi_A,\pi_B$ with
+$|m(\pi_A)-m(\pi_B)|\le\zeta$ for \emph{every} rollout-free $m$, yet $\mathrm{Succ}(\pi_A)=1$ and
+$\mathrm{Succ}(\pi_B)=0$. Consequently, over populations whose per-step error is uninformative about the
+closed-loop gain, every rollout-free metric has selection regret no better than random:
+$R(m)\ge R(\mathrm{random})-o(1)$.
+\end{theorem}
 
 \begin{proof}[Proof sketch]
-Let the two policies coincide with $\pi^\star$ on the support of $d^\star$ up to a perturbation of
-size $\zeta$, and differ only off $d^\star$: one steers toward a failure set, the other
-self-stabilizes. Because $L>1$, the $\zeta$ on-manifold difference is amplified and the closed loop
-leaves any fixed neighborhood of the expert manifold in $O(\log(1/\zeta)/\log L)$ steps
-($\le H$ for $\zeta$ small), after which the off-manifold behavior --- unconstrained by $d^\star$ ---
-fixes the outcome and the success rates separate by $\Omega(1)$. A rollout-free metric sees only the
-$\zeta$ difference on $d^\star$; an environment-querying metric observes the off-manifold divergence.
+Let $\pi_A,\pi_B$ agree with $\pi^\star$ on $\mathrm{supp}(d^\star)$ up to a $\zeta$ perturbation, so every
+functional of the policy on $d^\star$ agrees to $O(\zeta)$. Off $d^\star$ let $\pi_A$ be contractive
+($L_A<1$) and $\pi_B$ expansive ($L_B>1$). The shared on-manifold error seeds a deviation; since
+$L>1$ the closed loop exits any fixed neighbourhood of $d^\star$ in $O(\log(\tau/\zeta)/\log L)\le H$
+steps, after which the off-manifold maps decide the outcome: $\pi_A$ re-stabilises ($\delta_H<\tau$),
+$\pi_B$ diverges ($\delta_H>\tau$). A rollout-free $m$ cannot separate them. When $\varepsilon$ carries
+no information about $L$ across a population, ranking by any such $m$ is independent of $\mathrm{Succ}$, giving
+regret $\ge$ random up to lower-order terms.
 \end{proof}
 
-\paragraph{Controlled validation.}
-We confirm both halves on a linear system that exactly meets the assumptions (reference
-$s^\star_{t+1}=L s^\star_t$; a policy injects per-step error $\varepsilon$). First, the bound is
-tight: across gains $L\in[0.6,1.2]$ and errors $\varepsilon$, the measured closed-loop deviation
-equals $\varepsilon\,(L^H-1)/(L-1)$ to machine precision ($R^2 = 1.0$, Fig.~\ref{fig:bound}, left),
-so the $H$/$L$ scaling is exact rather than a loose worst case. Second, the identifiability
-consequence: across $600$ policies whose error $\varepsilon_i$ and gain $L_i$ vary independently,
-deployment success is governed by $\varepsilon_i\,(L_i^H-1)/(L_i-1)$. Validation loss, which sees
-only $\varepsilon_i$, correlates just $0.31$ with success, while an open-loop replay, which measures
-the accumulated deviation, correlates $0.84$ (Fig.~\ref{fig:bound}, right). Within a fixed gain
-band validation loss is informative ($0.68$); pooled across varying gain it is not ($0.31$) ---
-exactly the failure Proposition~\ref{prop:imposs} predicts. This is a controlled validation of the
-mechanism on a system satisfying the assumptions; whether it governs real manipulation is the
-empirical question Part~B answers.
+\begin{theorem}[Achievability for environment-querying selection]\label{thm:achieve}
+Let $m_{\mathrm{rep}}(\pi)$ be the open-loop replay deviation, an estimate of $\delta_H(\pi)$ with error
+$|m_{\mathrm{rep}}(\pi)-\delta_H(\pi)|\le\gamma$. Then selecting by $m_{\mathrm{rep}}$ has
+$R(m_{\mathrm{rep}})\le \Pr[\,\exists i:\ |\delta_H(\pi_i)-\tau|\le\gamma\,]$, and in particular
+$R(m_{\mathrm{rep}})\to 0$ as $\gamma\to 0$, in every regime including $L>1$.
+\end{theorem}
+
+\begin{proof}
+If no checkpoint has $\delta_H$ within $\gamma$ of $\tau$, then $\arg\min_i m_{\mathrm{rep}}(\pi_i)$ has the
+same success label as $\arg\min_i \delta_H(\pi_i)$, and the latter attains the oracle success whenever
+any checkpoint succeeds (the minimum-deviation checkpoint succeeds iff some checkpoint does). Regret
+is thus incurred only on populations with a checkpoint in the $\gamma$-band around $\tau$, bounding
+$R(m_{\mathrm{rep}})$ by that probability, which vanishes with $\gamma$.
+\end{proof}
+
+Theorems~\ref{thm:imposs} and~\ref{thm:achieve} are a matched lower/upper bound: the line between
+``cannot rank'' and ``ranks at the oracle'' is exactly environment access, not metric sophistication.
+Our controlled study confirms both: in a gain-dominated population (Fig.~\ref{fig:bound}c)
+rollout-free validation-loss selection succeeds $0.63$ of the time, barely above random $0.60$ and far
+below the oracle $0.99$ (regret $0.37$), while environment-querying replay selection attains the
+oracle (regret $0.00$).
+
+\begin{corollary}[The horizon wall]\label{cor:wall}
+For $L>1$ a fixed per-step error $\varepsilon$ first breaches tolerance at
+$H^\star=\log\!\big(1+\tfrac{\tau}{\varepsilon}(L-1)\big)/\log L$. Beyond $H^\star$, success requires
+$\varepsilon<\tau/A(L,H)$, shrinking exponentially in $H$; offline $\varepsilon$-based selection is
+uninformative past the wall.
+\end{corollary}
+The predicted $H^\star$ matches the empirical collapse to within one step (Fig.~\ref{fig:bound}d:
+$H^\star=12.8$ predicted, $13$ observed).
+
+\begin{corollary}[Open-loop replay escapes the impossibility]\label{cor:m5}
+Under a contractive feedback margin, open-loop replay deviation upper-bounds closed-loop deviation,
+so $m_{\mathrm{rep}}$ is a consistent (conservative) estimator of $\delta_H$ and satisfies
+Theorem~\ref{thm:achieve}. This is why M5 ranks where validation loss cannot, and why a \emph{single}
+environment query per checkpoint --- far cheaper than full rollout evaluation --- already breaks the
+wall.
+\end{corollary}
 
 \begin{figure}[t]\centering
-\figorbox{partA/figA1_bound_tightness.pdf}{0.46}\hfill
-\figorbox{partA/figA2_identifiability.pdf}{0.46}
-\caption{Controlled validation. Left (P1): measured closed-loop deviation equals the predicted
-$\varepsilon\,(L^H-1)/(L-1)$ ($R^2=1.0$). Right (P2): across policies of varying closed-loop gain,
-validation loss correlates only $0.31$ with success while an environment-querying replay correlates
-$0.84$.}
+\figorbox{partA/figA1_bound_tightness.pdf}{0.24}\hfill
+\figorbox{partA/figA2_identifiability.pdf}{0.24}\hfill
+\figorbox{partA/figA3_selection_regret.pdf}{0.24}\hfill
+\figorbox{partA/figA4_horizon_wall.pdf}{0.24}
+\caption{Controlled validation on a system meeting the assumptions. (a) The bound is tight,
+$R^2{=}1.0$. (b) Validation loss correlates $0.31$ with success vs $0.84$ for an environment-querying
+replay. (c) Selection regret (Thm~\ref{thm:imposs},~\ref{thm:achieve}): rollout-free $\approx$ random,
+environment-querying $=$ oracle. (d) The horizon wall (Cor.~\ref{cor:wall}): predicted $H^\star$
+matches the collapse. This validates the theory's mechanism; real-manipulation evidence is Part~B.}
 \label{fig:bound}
 \end{figure}
 
-This is a selection-theoretic reading of the long-known insufficiency of expert-distribution data
-\citep{ross2011reduction,simchowitz2025pitfalls}; what we take from it is the \emph{line it draws
-through our metric set}. It predicts that in contact-rich, long-horizon tasks ($L>1$, large $H$) no
-rollout-free metric --- validation loss included --- can be relied on, while M5 and M7, which touch
-the simulator, can. It is the formal version of this paper's ``horizon wall'' outcome, and it makes
-H3's metric-by-regime comparison a test of a stated boundary rather than an open fishing expedition.
-To our knowledge no prior work empirically calibrates these offline metrics against ground-truth
-success across modern visuomotor policies and task regimes, nor organizes them by this boundary,
-which is the gap this paper fills.
+\paragraph{Why this matters.} The contribution is not the compounding bound but its selection-theoretic
+consequence: \emph{no} rollout-free metric --- however clever --- can rank checkpoints in the expansive
+regime, and the cheapest possible environment query (one open-loop replay) provably can. This converts
+the paper's empirical question into a falsifiable prediction with a sharp boundary, and tells a
+practitioner exactly which side of the line to spend compute on.

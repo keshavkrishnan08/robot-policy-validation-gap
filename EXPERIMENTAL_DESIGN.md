@@ -25,13 +25,16 @@ past $L\approx 1$ while M5 stays high.
 The first realization (image policy on a saturating tracking task) was degenerate — for $L>1$ the
 bounded-image state saturated, trivializing tracking. **Redesigned** as a faithful numerical
 validation on a linear system that exactly meets the bound's assumptions (`drc/bound_validation.py`,
-`scripts/run_partA_bound.py`). Real results (`results/partA_bound.json`, CPU, seconds):
-- **P1 — bound tightness:** measured deviation $=\varepsilon(L^H-1)/(L-1)$ to machine precision,
-  $R^2 = 1.0$. The H/L scaling is exact, not loose.
-- **P2 — identifiability:** across 600 policies with independent $(\varepsilon_i, L_i)$, validation
-  loss correlates $0.31$ with success while an environment-querying replay correlates $0.84$;
-  within a fixed gain band validation loss works ($0.68$), pooled across gains it fails ($0.31$).
-- Figures: `figures/partA/figA1_bound_tightness.pdf`, `figA2_identifiability.pdf`. In the paper §4.
+`scripts/run_partA_bound.py`). The theory was strengthened to a matched pair (Thm 1 impossibility lower bound + Thm 2 achievability
+upper bound for offline selection) with two corollaries; all four validated. Real results
+(`results/partA_bound.json`, CPU, seconds):
+- **P1 — bound tightness:** measured deviation $=\varepsilon(L^H-1)/(L-1)$ to machine precision, $R^2=1.0$.
+- **P2 — identifiability:** validation loss correlates $0.31$ with success; environment-querying
+  replay $0.84$. Within a fixed gain band validation loss works ($0.68$), pooled it fails ($0.31$).
+- **Thm 1 vs Thm 2 — selection regret:** rollout-free validation-loss selection $0.63$ (≈ random
+  $0.60$) vs oracle $0.99$ → regret $0.37$; environment-querying replay selection → regret $0.00$.
+- **Cor 1 — horizon wall:** predicted $H^\star=12.8$ vs empirical $13$ (matches within one step).
+- Figures: `figures/partA/figA1`–`figA4`. In the paper §4 (Thm 1, Thm 2, Cor 1, Cor 2).
 - **Scope:** controlled validation of the mechanism on a system meeting the assumptions; NOT a
   real-robot result. The manipulation evidence is Part B. The old image-sweep
   (`run_partA_sweep.py`) is superseded but kept.

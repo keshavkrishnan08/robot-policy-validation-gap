@@ -92,3 +92,49 @@ def signed_corr_sub(x, success):
     if len(np.unique(success)) < 2 or len(np.unique(x)) < 2:
         return 0.0
     return float(-np.corrcoef(x, success)[0, 1])
+
+
+def selection_regret(n_populations=2000, K=6, H=12, tol=1.0, eps_range=(0.005, 0.08),
+                     L_range=(0.6, 1.25), replay_noise=0.05, seed=0):
+    """Validate Thm 1 (rollout-free) vs Thm 2 (environment-querying) on the SELECTION problem.
+
+    Each population has K checkpoints with independent (eps_i, L_i). Deployment success is
+    [delta_i < tol] with delta_i = eps_i*(L_i^H-1)/(L_i-1). We select one checkpoint by each
+    metric and report the probability the selected checkpoint succeeds:
+      - validation loss (rollout-free): argmin eps_i      -> blind to gain L
+      - open-loop replay (env-querying): argmin (delta_i + noise)  -> sees the deviation
+      - oracle: a population succeeds if any checkpoint does
+      - random: average checkpoint
+    Selection regret = oracle_rate - method_rate.
+    """
+    rng = np.random.default_rng(seed)
+    succ = {"oracle": 0, "val_loss": 0, "replay": 0, "random": 0}
+    for _ in range(n_populations):
+        eps = rng.uniform(*eps_range, K)
+        L = rng.uniform(*L_range, K)
+        delta = np.array([deviation_persistent(L[i], eps[i], H) for i in range(K)])
+        s = (delta < tol).astype(float)
+        succ["oracle"] += float(s.max())
+        succ["val_loss"] += float(s[int(np.argmin(eps))])
+        succ["replay"] += float(s[int(np.argmin(delta + rng.normal(0, replay_noise, K)))])
+        succ["random"] += float(s.mean())
+    rates = {k: v / n_populations for k, v in succ.items()}
+    return {
+        "rates": rates,
+        "regret_val_loss": rates["oracle"] - rates["val_loss"],
+        "regret_replay": rates["oracle"] - rates["replay"],
+        "regret_random": rates["oracle"] - rates["random"],
+        "K": K, "H": H, "tol": tol, "n_populations": n_populations,
+    }
+
+
+def horizon_wall(L=1.15, eps=0.03, tol=1.0, H_max=60):
+    """Validate Cor 1: success collapses at the predicted critical horizon
+    H* = log(1 + (tol/eps)(L-1)) / log L (for L>1)."""
+    H_star_pred = float(np.log(1 + (tol / eps) * (L - 1)) / np.log(L)) if L > 1 else float("inf")
+    curve = [{"H": H, "deviation": deviation_persistent(L, eps, H),
+              "success": int(deviation_persistent(L, eps, H) < tol)} for H in range(1, H_max + 1)]
+    # first H where deviation exceeds tol
+    H_star_emp = next((c["H"] for c in curve if c["deviation"] >= tol), H_max)
+    return {"L": L, "eps": eps, "tol": tol, "H_star_predicted": H_star_pred,
+            "H_star_empirical": H_star_emp, "curve": curve}

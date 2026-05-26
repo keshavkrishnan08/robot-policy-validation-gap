@@ -31,3 +31,21 @@ def test_p2_replay_beats_validation_loss():
     assert p2["replay_corr_pooled"] > p2["val_loss_corr_pooled"] + 0.2
     assert 0.0 <= p2["val_loss_corr_pooled"] <= 1.0
     assert p2["replay_corr_pooled"] > 0.6
+
+
+def test_selection_regret_thm1_thm2():
+    from drc.bound_validation import selection_regret
+    sr = selection_regret(n_populations=4000, K=6, H=18, tol=1.0,
+                          eps_range=(0.02, 0.03), L_range=(0.7, 1.35), seed=0)
+    # Thm 2: env-querying replay achieves near-oracle selection (small regret)
+    assert sr["regret_replay"] < 0.05
+    # Thm 1: rollout-free validation loss is near-random (much larger regret)
+    assert sr["regret_val_loss"] > 0.2
+    assert sr["regret_val_loss"] > 5 * sr["regret_replay"]
+
+
+def test_horizon_wall_prediction_matches():
+    from drc.bound_validation import horizon_wall
+    hw = horizon_wall(L=1.15, eps=0.03, tol=1.0)
+    # predicted critical horizon must match the empirical collapse within one step
+    assert abs(hw["H_star_predicted"] - hw["H_star_empirical"]) <= 1.0

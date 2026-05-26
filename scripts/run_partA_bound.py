@@ -16,7 +16,7 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import numpy as np
 
-from drc.bound_validation import run_p1, run_p2_identifiability
+from drc.bound_validation import run_p1, run_p2_identifiability, selection_regret, horizon_wall
 from drc.utils import ensure_dir, get_logger, path, save_json
 
 log = get_logger("partA_bound")
@@ -62,7 +62,40 @@ def main():
     f2 = os.path.join(figdir, "figA2_identifiability.pdf")
     fig.savefig(f2, bbox_inches="tight"); plt.close(fig)
 
-    save_json({"p1_r2": r2, "p1_max_rel_err": rel_err, "p2": p2}, path("results", "partA_bound.json"))
+    # ---- Thm 1 vs Thm 2: selection regret (gain-dominated regime) ----
+    sr = selection_regret(n_populations=6000, K=6, H=18, tol=1.0,
+                          eps_range=(0.02, 0.03), L_range=(0.7, 1.35), replay_noise=0.05, seed=0)
+    fig, ax = plt.subplots(figsize=(5.5, 4))
+    order = ["oracle", "replay", "val_loss", "random"]
+    labels = ["oracle", "open-loop replay\n(env-querying)", "validation loss\n(rollout-free)", "random"]
+    colors = ["#1a202c", "#2f855a", "#9b2c2c", "#a0aec0"]
+    ax.bar(labels, [sr["rates"][k] for k in order], color=colors)
+    ax.set_ylabel("P(selected checkpoint succeeds)")
+    ax.set_ylim(0, 1.05)
+    ax.set_title("Selection regret: rollout-free $\\approx$ random; env-querying $=$ oracle")
+    for i, k in enumerate(order):
+        ax.text(i, sr["rates"][k] + 0.02, f"{sr['rates'][k]:.2f}", ha="center")
+    f3 = os.path.join(figdir, "figA3_selection_regret.pdf")
+    fig.savefig(f3, bbox_inches="tight"); plt.close(fig)
+
+    # ---- Cor 1: the horizon wall ----
+    hw = horizon_wall(L=1.15, eps=0.03, tol=1.0, H_max=40)
+    Hs = [c["H"] for c in hw["curve"]]
+    devs = [c["deviation"] for c in hw["curve"]]
+    fig, ax = plt.subplots(figsize=(5.5, 4))
+    ax.semilogy(Hs, devs, "-", color="#2b6cb0")
+    ax.axhline(hw["tol"], ls=":", color="gray", label="tolerance")
+    ax.axvline(hw["H_star_predicted"], ls="--", color="#9b2c2c",
+               label=f"$H^\\star$ predicted = {hw['H_star_predicted']:.1f}")
+    ax.set_xlabel("horizon $H$"); ax.set_ylabel(r"deviation $\delta_H$ (log)")
+    ax.set_title("Cor. 1: the horizon wall")
+    ax.legend(fontsize=8)
+    f4 = os.path.join(figdir, "figA4_horizon_wall.pdf")
+    fig.savefig(f4, bbox_inches="tight"); plt.close(fig)
+
+    save_json({"p1_r2": r2, "p1_max_rel_err": rel_err, "p2": p2,
+               "selection_regret": sr, "horizon_wall": {k: v for k, v in hw.items() if k != "curve"}},
+              path("results", "partA_bound.json"))
 
     print("\n===== Part A: numerical validation of the bound (controlled) =====")
     print(f"P1 bound tightness:  R^2 = {r2:.5f},  max relative error = {rel_err:.2e}")
@@ -75,7 +108,13 @@ def main():
     for k, v in p2["by_L_band"].items():
         print(f"     {k:10s} n={v['n']:3d} sr={v['success_rate']:.2f}  "
               f"val_loss={v['val_loss_corr']:+.2f}  replay={v['replay_corr']:+.2f}")
-    log.info(f"figures: {os.path.basename(f1)}, {os.path.basename(f2)}")
+    print(f"\nThm1 vs Thm2 selection regret (gain-dominated, K={sr['K']}, H={sr['H']}):")
+    print(f"   oracle={sr['rates']['oracle']:.3f}  replay(env)={sr['rates']['replay']:.3f}  "
+          f"val_loss(rollout-free)={sr['rates']['val_loss']:.3f}  random={sr['rates']['random']:.3f}")
+    print(f"   regret: val_loss={sr['regret_val_loss']:.3f} (~random), replay={sr['regret_replay']:.3f} (oracle)")
+    print(f"Cor1 horizon wall: H* predicted={hw['H_star_predicted']:.1f}, empirical={hw['H_star_empirical']}")
+    log.info(f"figures: {os.path.basename(f1)}, {os.path.basename(f2)}, "
+             f"{os.path.basename(f3)}, {os.path.basename(f4)}")
     print("\n[honest scope] controlled validation that the bound describes a system meeting its "
           "assumptions, and that validation loss cannot rank varying-gain policies while replay can.")
     print("[NOT a real-robot result] the manipulation evidence is Part B (Kaggle).")

@@ -16,5 +16,27 @@
         "success_rate": 0.47639484978540775
       }
     }
+  },
+  "selection_regret": {
+    "rates": {
+      "oracle": 0.9941666666666666,
+      "val_loss": 0.6281666666666667,
+      "replay": 0.9941666666666666,
+      "random": 0.5946944444444426
+    },
+    "regret_val_loss": 0.366,
+    "regret_replay": 0.0,
+    "regret_random": 0.399472222222224,
+    "K": 6,
+    "H": 18,
+    "tol": 1.0,
+    "n_populations": 6000
+  },
+  "horizon_wall": {
+    "L": 1.15,
+    "eps": 0.03,
+    "tol": 1.0,
+    "H_star_predicted": 12.820081338154923,
+    "H_star_empirical": 13
   }
 }
