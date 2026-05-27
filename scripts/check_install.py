@@ -49,13 +49,32 @@ try:
 except Exception as e:
     problems.append(f"libero config: {e}")
 try:
+    import signal
+
     from drc import config
     from drc.envs import make_env
+
+    # A misconfigured GL backend doesn't error — it HANGS on the first offscreen render. Bound the
+    # whole build+render with SIGALRM so this check fails loudly in seconds instead of blocking.
+    def _timeout(_sig, _frm):
+        raise TimeoutError("env build/render exceeded 120s — almost certainly a headless-GL hang "
+                           "(MUJOCO_GL). The real run would hang here too.")
+    signal.signal(signal.SIGALRM, _timeout)
+    signal.alarm(120)
+
     env = make_env("LIBERO-Spatial-1", config.load_tasks()["LIBERO-Spatial-1"], synthetic=False)
-    print("  OK   LIBERO OffScreenRenderEnv built")
+    print(f"  OK   LIBERO OffScreenRenderEnv built (MUJOCO_GL={os.environ.get('MUJOCO_GL')})")
+    # THE load-bearing check: actually render offscreen (this is what hung in the metrics step).
+    raw = env.env.reset()
+    img = raw.get("agentview_image")
+    if img is None:
+        problems.append("env.reset() returned no agentview_image — rendering misconfigured")
+    else:
+        print(f"  OK   offscreen render works: agentview_image {tuple(img.shape)}")
+    signal.alarm(0)
 except Exception as e:
     traceback.print_exc()
-    problems.append(f"LIBERO env build: {type(e).__name__}: {e}  "
+    problems.append(f"LIBERO env build/render: {type(e).__name__}: {e}  "
                     "(try MUJOCO_GL=osmesa, or apt-get install libgl1-mesa-glx libosmesa6)")
 
 print("\n=== result ===")

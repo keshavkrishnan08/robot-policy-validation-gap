@@ -12,6 +12,15 @@ env and are only constructed on Kaggle.
 """
 from __future__ import annotations
 
+import os as _os
+
+# Pin MuJoCo/PyOpenGL to GPU EGL offscreen rendering BEFORE any mujoco/robosuite import.
+# Without this, on a headless node (Kaggle) MuJoCo's GL backend auto-selection blocks
+# indefinitely the first time an offscreen render context is created — which is the metrics/
+# rollout step, after training has already burned hours. setdefault lets the shell override.
+_os.environ.setdefault("MUJOCO_GL", "egl")
+_os.environ.setdefault("PYOPENGL_PLATFORM", "egl")
+
 import numpy as np
 
 

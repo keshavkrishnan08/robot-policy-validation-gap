@@ -5,6 +5,7 @@ cd "$(dirname "$0")/.."
 
 # GPU (EGL) offscreen rendering; without it MuJoCo may fall back to slow CPU osmesa.
 export MUJOCO_GL=egl
+export PYOPENGL_PLATFORM=egl
 
 RM_TASKS=(Robomimic-Lift-PH Robomimic-Can-PH Robomimic-Square-PH Robomimic-Transport-PH)
 SEEDS="${SEEDS:-0 1 2}"   # 3 seeds (n=48) on dual T4; set "0 1" (n=32) for single T4
