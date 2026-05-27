@@ -25,8 +25,8 @@ CONFIG_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file
 # Pre-locked literals (mirror configs/*.yaml; authoritative for the analysis).
 # ---------------------------------------------------------------------------
 SEEDS = (0, 1, 2)
-CHECKPOINT_EPOCHS = (10, 25, 50, 75, 100, 150)
-NUM_EPOCHS = 150
+CHECKPOINT_EPOCHS = (10, 25, 50, 80, 120)   # 5 checkpoints, capped at 120 epochs
+NUM_EPOCHS = 120
 
 # Two architectures (rigor): a "run" is (task, seed, architecture).
 ARCHITECTURES = ("diffusion", "act")

@@ -14,7 +14,8 @@ def test_counts():
     assert len(config.TASKS) == 8
     assert len(config.ARCHITECTURES) == 2
     assert config.N_RUNS == 8 * 3 * 2   # tasks x seeds x architectures = 48
-    assert config.N_CHECKPOINTS == config.N_RUNS * 6  # 288
+    assert len(config.CHECKPOINT_EPOCHS) == 5
+    assert config.N_CHECKPOINTS == config.N_RUNS * 5  # 240
     assert len(config.METRIC_COLS) == 8
 
 

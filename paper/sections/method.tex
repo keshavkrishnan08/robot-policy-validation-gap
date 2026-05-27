@@ -11,9 +11,9 @@ denoiser) and ACT~\citep{zhao2023act} (an action-chunking CVAE transformer). Bot
 ResNet-18 image encoder, proprioception concatenated, action chunk eight, prediction horizon
 sixteen, observation horizon two. A run is one (task, seed, architecture) triple: eight tasks
 $\times$ three seeds $\times$ two architectures $=$ \NRuns{} runs. Checkpoints are saved at
-epochs 10, 25, 50, 75, 100, and 150, for \NCheckpoints{} checkpoints in total. With
-\NRuns{} runs the protocol has power above 0.95 to detect a ten-percentage-point gap at the
-Bonferroni-corrected $\alpha$.
+epochs 10, 25, 50, 80, and 120 (oversampling early and mid training, where the gap is most
+informative), for \NCheckpoints{} checkpoints in total. With \NRuns{} runs the protocol has
+power above 0.95 to detect a ten-percentage-point gap at the Bonferroni-corrected $\alpha$.
 
 \paragraph{The eight offline metrics.} M1 validation L1 (the baseline); M2 delta-action MSE;
 M3 action-distribution entropy; M4 latent Mahalanobis distance to the training distribution;

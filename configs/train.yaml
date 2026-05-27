@@ -3,8 +3,8 @@
 # Locked 2026-05-25. DO NOT EDIT after SA-2 begins.
 
 seeds: [0, 1, 2]
-checkpoint_epochs: [10, 25, 50, 75, 100, 150]
-num_epochs: 150
+checkpoint_epochs: [10, 25, 50, 80, 120]   # 5 checkpoints, capped at 120 (~20% less training
+num_epochs: 120                             # than 150) while preserving the run count -> power
 
 # Architectures evaluated (rigor: show the gap is architecture-general).
 # A "run" in the analysis is now (task, seed, architecture).
