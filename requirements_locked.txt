@@ -1,23 +1,23 @@
-# DRC CoRL 2026 — pinned versions for the Kaggle dual-T4 run (SA-1 output).
-# Verified compatible with the Diffusion Policy recipe. The dev-box subset
-# (numpy/scipy/pandas/sklearn/statsmodels/matplotlib/torch) is verified locally.
-numpy==1.26.4
-scipy==1.13.0
-pandas==2.3.3
-scikit-learn==1.5.2
-statsmodels==0.14.6
-matplotlib==3.10.8
-PyYAML==6.0.1
-torch==2.2.2
-mujoco==3.1.6
-robosuite==1.4.1
-libero==1.0.0
-robomimic==0.3.0
-diffusers==0.27.0
-h5py==3.11.0
-opencv-python-headless==4.10.0.84
-einops==0.7.0
-zarr==2.17.0
-dill==0.3.8
-hydra-core==1.3.2
-omegaconf==2.3.0
+# DRC CoRL 2026 — dependency notes.
+#
+# DO NOT `pip install -r requirements_locked.txt` on Kaggle for the sim stack:
+#  - `libero` is NOT a usable PyPI package (it installs from GitHub source), and
+#  - the legacy pinned versions fight Kaggle's modern base (Python 3.12 / numpy 2 / torch 2.10).
+# Use `bash scripts/kaggle_setup.sh` instead, which installs LIBERO from source and a
+# compatible Robomimic/Robosuite/MuJoCo line, ending with an import check.
+#
+# --- Pure-analysis / dev box (CPU, no simulator): these DO pip-install cleanly ---
+numpy<2
+scipy
+pandas
+scikit-learn
+statsmodels
+matplotlib
+PyYAML
+torch
+# --- Simulation stack: install via scripts/kaggle_setup.sh (from source), not pinned here ---
+#   LIBERO        (git clone https://github.com/Lifelong-Robot-Learning/LIBERO ; pip install -e .)
+#   robomimic     (pip install robomimic)
+#   robosuite     (pip install "robosuite>=1.4")
+#   mujoco        (pip install "mujoco>=3.1")
+#   h5py, opencv-python-headless

@@ -73,6 +73,28 @@ def main(args):
     df.to_csv(out, index=False)
     log.info(f"rollouts.csv now has {len(df)} rows ({df['task'].nunique() if len(df) else 0} tasks)")
 
+    # Estimate per-task closed-loop gain L_hat (for the real-data headline figures).
+    if args.estimate_lyapunov and not df.empty:
+        from drc.lyapunov import estimate_lyapunov
+        from drc.utils import load_json
+        lhat_path = path("results", "lyapunov.json")
+        lhat = load_json(lhat_path) if os.path.exists(lhat_path) else {}
+        for task in selected:
+            conds = load_conditions(task)
+            max_steps = tasks_cfg[task]["max_steps"]
+            env = env_for(task, synthetic=args.synthetic)
+            # use the last-epoch checkpoint of the first available (seed, arch)
+            cp = next((ckpt_path(task, s, epochs[-1], a) for a in archs for s in config.SEEDS
+                       if os.path.exists(ckpt_path(task, s, epochs[-1], a))), None)
+            if cp is None:
+                continue
+            pol, _ = load_policy(cp, tcfg, device=args.device)
+            res = estimate_lyapunov(pol, env, conds[:5], max_steps, device=args.device,
+                                    eps=tcfg.get("rollout", {}).get("perturb_eps", 0.05), K=K, noise_seed=noise_seed)
+            lhat[task] = res["L_hat"]
+            log.info(f"{task}: L_hat={res['L_hat']:.3f}")
+        save_json(lhat, lhat_path)
+
 
 if __name__ == "__main__":
     ap = argparse.ArgumentParser()
@@ -82,4 +104,7 @@ if __name__ == "__main__":
     ap.add_argument("--all_archs", action="store_true")
     ap.add_argument("--tasks", default=None, help="comma list to process a subset (default all)")
     ap.add_argument("--checkpoint_epochs", default=None)
+    ap.add_argument("--no_lyapunov", dest="estimate_lyapunov", action="store_false",
+                    help="skip per-task L_hat estimation")
+    ap.set_defaults(estimate_lyapunov=True)
     main(ap.parse_args())

@@ -132,6 +132,62 @@ def fig6_metric_class(summary, out_dir, name="fig6_metric_class_vs_L.pdf"):
     return _save(fig, out_dir, name)
 
 
+def fig_gap_vs_amplification_real(results, lhat, out_dir, H_eff=20, name="fig5_gap_vs_amplification_real.pdf"):
+    """Real-task headline (P1): per-task validation gap vs the predicted amplification
+    (L_hat^H-1)/(L_hat-1), using the empirically estimated closed-loop gain per task."""
+    from drc.lyapunov import amplification
+    import pandas as pd
+
+    gaps = pd.DataFrame(results["H1"]["gaps"])
+    rows = []
+    for task, g in gaps.groupby("task"):
+        if task not in lhat or not np.isfinite(lhat[task]):
+            continue
+        rows.append({"task": task, "ampl": amplification(lhat[task], H_eff),
+                     "gap_pct": float(g["gap_pct"].mean()), "L_hat": lhat[task]})
+    if len(rows) < 2:
+        return None
+    s = pd.DataFrame(rows).sort_values("ampl")
+    fig, ax = plt.subplots(figsize=(6, 4))
+    ax.scatter(s["ampl"], s["gap_pct"], c="#2b6cb0", s=45, zorder=3)
+    for _, r in s.iterrows():
+        ax.annotate(r["task"].replace("Robomimic-", "RM-").replace("LIBERO-", "LB-"),
+                    (r["ampl"], r["gap_pct"]), fontsize=6, textcoords="offset points", xytext=(3, 3))
+    ax.set_xlabel(rf"estimated amplification $(\hat{{L}}^{{{H_eff}}}-1)/(\hat{{L}}-1)$")
+    ax.set_ylabel("validation gap (pp)")
+    ax.set_title("Real tasks: gap vs estimated amplification")
+    return _save(fig, out_dir, name)
+
+
+def fig_metricclass_vs_lhat(df, lhat, out_dir, name="fig6_metricclass_vs_lhat.pdf"):
+    """Real-task headline (P2): per-task rollout-free vs environment-querying mean signed
+    Spearman with success, against the estimated closed-loop gain."""
+    from drc import analysis
+    import pandas as pd
+
+    st = analysis.spearman_table(df)
+    rows = []
+    for task, sub in st.groupby("task"):
+        if task not in lhat or not np.isfinite(lhat[task]):
+            continue
+        rows.append({"L_hat": lhat[task],
+                     "rollout_free": float(sub[ROLLOUT_FREE].mean().mean()),
+                     "env_query": float(sub[ENV_QUERYING].mean().mean())})
+    if len(rows) < 2:
+        return None
+    s = pd.DataFrame(rows).sort_values("L_hat")
+    fig, ax = plt.subplots(figsize=(6, 4))
+    ax.plot(s["L_hat"], s["rollout_free"], "o-", color="#9b2c2c", label="rollout-free (M1-M4,M6,M8)")
+    ax.plot(s["L_hat"], s["env_query"], "s-", color="#2f855a", label="environment-querying (M5,M7)")
+    ax.axvline(1.0, ls="--", color="gray", lw=1)
+    ax.axhline(0.0, ls=":", color="gray", lw=0.8)
+    ax.set_xlabel(r"estimated closed-loop gain $\hat{L}$")
+    ax.set_ylabel("mean signed Spearman with success")
+    ax.set_title("Real tasks: metric-class ranking power vs gain")
+    ax.legend(fontsize=8)
+    return _save(fig, out_dir, name)
+
+
 def generate_all(results, df, out_dir):
     return {
         "fig1": fig1_headline(results, out_dir),

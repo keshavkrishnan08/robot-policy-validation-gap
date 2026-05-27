@@ -10,7 +10,7 @@ import sys
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from drc import analysis, figures, power
-from drc.utils import get_logger, path, save_json, sha256_file
+from drc.utils import get_logger, load_json, path, save_json, sha256_file
 
 log = get_logger("05_analysis")
 
@@ -26,6 +26,17 @@ def main(args):
 
     df = analysis.load_merged(metrics_csv, rollouts_csv)
     results["figures"] = figures.generate_all(results, df, path("figures"))
+
+    # Real-data headline figures (gap vs amplification, metric-class vs L_hat) if L_hat was estimated.
+    lhat_path = path("results", "lyapunov.json")
+    if os.path.exists(lhat_path):
+        lhat = load_json(lhat_path)
+        results["lyapunov"] = lhat
+        f5 = figures.fig_gap_vs_amplification_real(results, lhat, path("figures"))
+        f6 = figures.fig_metricclass_vs_lhat(df, lhat, path("figures"))
+        results["figures"]["fig5_real"] = f5
+        results["figures"]["fig6_real"] = f6
+        log.info(f"real-data headline figures: {f5}, {f6}")
 
     save_json(results, out_json)
     log.info(f"results -> {out_json}  (sha256 {sha256_file(out_json)[:16]})")
