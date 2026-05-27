@@ -26,12 +26,12 @@ def _ensure_libero_config():
     cfg_file = os.path.join(cfg_dir, "config.yaml")
     if os.path.exists(cfg_file):
         return
-    spec = importlib.util.find_spec("libero.libero")
-    if spec is None or not spec.origin:
-        return
     try:
+        spec = importlib.util.find_spec("libero.libero")
         import yaml
-    except ImportError:
+    except (ImportError, ModuleNotFoundError, ValueError):
+        return  # LIBERO (or yaml) not installed -> nothing to configure
+    if spec is None or not spec.origin:
         return
     root = os.path.dirname(os.path.abspath(spec.origin))
     cfg = {
