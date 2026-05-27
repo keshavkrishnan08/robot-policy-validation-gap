@@ -43,7 +43,7 @@ def main(args):
     for task in selected:
         _, val_ds, info, tl, vl = loaders_for(task, args.synthetic, args.bs)
         env = env_for(task, synthetic=args.synthetic)
-        replay = build_replay_episodes(task, args.synthetic, val_ds) if args.synthetic else []
+        replay = build_replay_episodes(task, args.synthetic, val_ds)  # real path returns [] on failure
 
         for arch in archs:
             for epoch in epochs:
@@ -63,9 +63,16 @@ def main(args):
                     single = M.compute_single_checkpoint(pol, tl, vl, env, replay, args.device, mcfg)
                     single["M6"] = m6
                     vals = {m: single[m] for m in config.METRIC_COLS}
+                    # Rollout-free metrics MUST be finite. M5/M7 (open-loop replay) may be NaN if
+                    # replay episodes are unavailable for a backend -> warn, don't crash the run.
+                    env_querying = {"M5", "M7"}
                     for m, v in vals.items():
                         if not np.isfinite(v):
-                            raise ValueError(f"non-finite metric {m} for {task} s{seed} [{arch}] ep{epoch}")
+                            if m in env_querying:
+                                log.warning(f"{m} NaN for {task} s{seed} [{arch}] ep{epoch} "
+                                            "(replay unavailable); recording NaN")
+                            else:
+                                raise ValueError(f"non-finite metric {m} for {task} s{seed} [{arch}] ep{epoch}")
                     rec = {"task": task, "seed": seed, "arch": arch, "epoch": epoch, **vals}
                     save_json(rec, metrics_path(task, seed, epoch, arch))
                     rows.append(rec)

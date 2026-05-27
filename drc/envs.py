@@ -130,8 +130,10 @@ class _RobomimicEnv(_RobosuiteEnvBase):  # pragma: no cover - Kaggle only
         from drc.data.libero_adapter import _resize
 
         self._resize = _resize
+        from drc.data.robomimic_adapter import _find_image_hdf5
+
         data_root = os.environ.get("ROBOMIMIC_DATA", "/kaggle/working/data/robomimic")
-        dataset = os.path.join(data_root, task_cfg["benchmark"], task_cfg["dataset"], "image.hdf5")
+        dataset = _find_image_hdf5(os.path.join(data_root, task_cfg["benchmark"], task_cfg["dataset"]))
         env_meta = FileUtils.get_env_metadata_from_dataset(dataset)
         self.env = EnvUtils.create_env_from_metadata(env_meta, render=False, render_offscreen=True)
         self._cam = "agentview"

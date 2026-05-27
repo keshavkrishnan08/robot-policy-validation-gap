@@ -7,6 +7,8 @@ common rollout interface (reset_to / get_observation / step / eef_pose).
 """
 from __future__ import annotations
 
+import os
+
 import numpy as np
 
 from drc.data.dataset import SequenceDataset
@@ -35,15 +37,32 @@ def load_libero_dataset(task_cfg: dict, n_obs_steps: int = 2, horizon: int = 16,
     from libero.libero import get_libero_path
     import os
 
+    import glob
+
     bench = task_cfg["benchmark"]
     demo_dir = os.path.join(get_libero_path("datasets"), bench)
-    # File name convention: <bddl>_demo.hdf5
-    fname = next(f for f in os.listdir(demo_dir) if task_cfg["bddl"] in f and f.endswith(".hdf5"))
-    path = os.path.join(demo_dir, fname)
+    if not os.path.isdir(demo_dir):
+        raise FileNotFoundError(f"{demo_dir} missing — did download_task.py download suite '{bench}'?")
+    # Resolve the demo hdf5: match the bddl/task name, else fall back to task_id ordering.
+    hdf5s = sorted(glob.glob(os.path.join(demo_dir, "*.hdf5")))
+    matches = [f for f in hdf5s if task_cfg["bddl"] in os.path.basename(f)]
+    if matches:
+        path = matches[0]
+    elif hdf5s and "task_id" in task_cfg and task_cfg["task_id"] < len(hdf5s):
+        path = hdf5s[task_cfg["task_id"]]   # fallback: nth file in the suite
+    else:
+        raise FileNotFoundError(
+            f"No demo hdf5 in {demo_dir} matching bddl '{task_cfg['bddl']}'. "
+            f"Present: {[os.path.basename(f) for f in hdf5s]}")
 
     images, proprio, actions = [], [], []
     with h5py.File(path, "r") as f:
         demos = sorted(f["data"].keys(), key=lambda k: int(k.split("_")[-1]))
+        avail = list(f["data"][demos[0]]["obs"].keys())
+        need = ["agentview_rgb", "ee_pos", "ee_ori", "gripper_states"]
+        missing = [k for k in need if k not in avail]
+        if missing:
+            raise KeyError(f"LIBERO obs keys {missing} not in {os.path.basename(path)}. Available: {avail}")
         for d in demos:
             g = f["data"][d]
             rgb = g["obs"]["agentview_rgb"][()]  # (T, H, W, 3) uint8
@@ -57,6 +76,38 @@ def load_libero_dataset(task_cfg: dict, n_obs_steps: int = 2, horizon: int = 16,
             actions.append(g["actions"][()].astype(np.float32))
 
     return _split_and_pack(images, proprio, actions, n_obs_steps, horizon, val_frac, CROP)
+
+
+def load_replay_episodes(task_cfg, n=4, n_obs_steps=2):
+    """Open-loop replay episodes (for M5/M7) from the last n demos of the suite hdf5."""
+    import glob
+    import h5py
+    from libero.libero import get_libero_path
+
+    demo_dir = os.path.join(get_libero_path("datasets"), task_cfg["benchmark"])
+    hdf5s = sorted(glob.glob(os.path.join(demo_dir, "*.hdf5")))
+    matches = [f for f in hdf5s if task_cfg["bddl"] in os.path.basename(f)]
+    path = matches[0] if matches else hdf5s[task_cfg.get("task_id", 0)]
+    episodes = []
+    with h5py.File(path, "r") as f:
+        demos = sorted(f["data"].keys(), key=lambda k: int(k.split("_")[-1]))[-n:]
+        for d in demos:
+            g = f["data"][d]
+            states = g["states"][()]
+            rgb = g["obs"]["agentview_rgb"][()]
+            pro = np.concatenate([g["obs"]["ee_pos"][()], g["obs"]["ee_ori"][()],
+                                  g["obs"]["gripper_states"][()]], axis=-1).astype(np.float32)
+            imgs = np.stack([_resize(fr) for fr in rgb], axis=0)
+            seq = []
+            for t in range(0, len(imgs), 8):
+                lo = max(0, t - n_obs_steps + 1)
+                wi, wp = imgs[lo:t + 1], pro[lo:t + 1]
+                while len(wi) < n_obs_steps:
+                    wi = np.concatenate([imgs[:1], wi], 0); wp = np.concatenate([pro[:1], wp], 0)
+                seq.append({"image": wi[-n_obs_steps:][None], "proprio": wp[-n_obs_steps:][None]})
+            episodes.append({"obs_seq": seq, "initial_state": states[0],
+                             "final_eef_pose": pro[-1][:3].copy()})
+    return episodes
 
 
 def _split_and_pack(images, proprio, actions, n_obs_steps, horizon, val_frac, crop):

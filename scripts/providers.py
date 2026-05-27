@@ -76,4 +76,21 @@ def build_replay_episodes(task: str, synthetic: bool, val_ds, n_obs_steps=2, max
                 {"obs_seq": obs_seq, "initial_state": ep["initial_state"], "final_eef_pose": ep["final_eef_pose"]}
             )
         return episodes
-    raise NotImplementedError("Real-backend replay episodes are built on Kaggle from val demos.")
+
+    # Real backends: build from the val demos' obs + initial sim states. Defensive — any failure
+    # returns [] so M5/M7 degrade to NaN (logged) rather than crashing the whole run.
+    from drc import config
+    from drc.utils import get_logger
+    log = get_logger("providers")
+    cfg = config.load_tasks()[task]
+    try:
+        if cfg["suite"] == "libero":
+            from drc.data.libero_adapter import load_replay_episodes
+            return load_replay_episodes(cfg, n=max_episodes, n_obs_steps=n_obs_steps)
+        import os
+        from drc.data.robomimic_adapter import load_replay_episodes
+        data_root = os.environ.get("ROBOMIMIC_DATA", "/kaggle/working/data/robomimic")
+        return load_replay_episodes(cfg, data_root, n=max_episodes, n_obs_steps=n_obs_steps)
+    except Exception as e:
+        log.warning(f"replay episodes unavailable for {task} ({type(e).__name__}: {e}); M5/M7 -> NaN")
+        return []

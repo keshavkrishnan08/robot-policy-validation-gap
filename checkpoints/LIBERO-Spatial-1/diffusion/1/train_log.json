@@ -1,0 +1,19 @@
+{
+  "task": "LIBERO-Spatial-1",
+  "seed": 1,
+  "arch": "diffusion",
+  "history": [
+    {
+      "epoch": 1,
+      "train_loss": 1.1955373287200928,
+      "val_l1": 0.19062493741512299,
+      "wallclock_s": 2.1989948749542236
+    },
+    {
+      "epoch": 2,
+      "train_loss": 1.2130035161972046,
+      "val_l1": 0.19423870742321014,
+      "wallclock_s": 1.5473320484161377
+    }
+  ]
+}

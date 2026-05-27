@@ -40,11 +40,27 @@ def _ensure_arch(df: pd.DataFrame) -> pd.DataFrame:
     return df
 
 
+def _impute_metrics(df: pd.DataFrame) -> pd.DataFrame:
+    """Replace non-finite metric values with the column's finite median (0 if all non-finite),
+    so a metric that could not be computed for a backend (e.g. M5 replay) cannot crash the ridge
+    or the figures. An all-NaN column becomes constant -> uninformative (Spearman 0), as intended."""
+    df = df.copy()
+    for m in METRIC_COLS:
+        if m not in df.columns:
+            continue
+        col = pd.to_numeric(df[m], errors="coerce")
+        finite = col[np.isfinite(col)]
+        fill = float(finite.median()) if len(finite) else 0.0
+        df[m] = col.where(np.isfinite(col), fill)
+    return df
+
+
 def load_merged(metrics_csv: str, rollouts_csv: str) -> pd.DataFrame:
     m = _ensure_arch(pd.read_csv(metrics_csv))
     r = _ensure_arch(pd.read_csv(rollouts_csv))
     keys = ["task", "seed", "epoch", "arch"]
     df = m.merge(r[keys + ["success_rate"]], on=keys)
+    df = _impute_metrics(df)
     return df.sort_values(RUN_KEYS + ["epoch"]).reset_index(drop=True)
 
 
