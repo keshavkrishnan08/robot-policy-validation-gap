@@ -15,6 +15,37 @@ from __future__ import annotations
 import numpy as np
 
 
+def _ensure_libero_config():
+    """Write ~/.libero/config.yaml with default package-relative paths so LIBERO never enters its
+    interactive first-run setup (which prompts on stdin and hangs notebooks). Idempotent; no-op if
+    LIBERO is absent or the config already exists. Uses find_spec to avoid executing libero.libero."""
+    import importlib.util
+    import os
+
+    cfg_dir = os.environ.get("LIBERO_CONFIG_PATH", os.path.expanduser("~/.libero"))
+    cfg_file = os.path.join(cfg_dir, "config.yaml")
+    if os.path.exists(cfg_file):
+        return
+    spec = importlib.util.find_spec("libero.libero")
+    if spec is None or not spec.origin:
+        return
+    try:
+        import yaml
+    except ImportError:
+        return
+    root = os.path.dirname(os.path.abspath(spec.origin))
+    cfg = {
+        "benchmark_root": root,
+        "bddl_files": os.path.join(root, "bddl_files"),
+        "init_states": os.path.join(root, "init_files"),
+        "datasets": os.path.join(os.path.dirname(root), "datasets"),
+        "assets": os.path.join(root, "assets"),
+    }
+    os.makedirs(cfg_dir, exist_ok=True)
+    with open(cfg_file, "w") as f:
+        yaml.safe_dump(cfg, f)
+
+
 def make_env(task_name: str, task_cfg: dict, synthetic: bool = False, n_obs_steps: int = 2):
     if synthetic:
         from drc.data.synthetic import SyntheticEnv
@@ -55,6 +86,7 @@ class _RobosuiteEnvBase:
 class _LiberoEnv(_RobosuiteEnvBase):  # pragma: no cover - Kaggle only
     def __init__(self, task_cfg, n_obs_steps):
         super().__init__(n_obs_steps)
+        _ensure_libero_config()   # write ~/.libero/config.yaml so LIBERO never prompts on stdin
         from libero.libero import benchmark
         from libero.libero.envs import OffScreenRenderEnv
         from drc.data.libero_adapter import _resize

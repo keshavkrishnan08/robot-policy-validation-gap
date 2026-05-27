@@ -31,11 +31,11 @@ pip install -q "mujoco>=3.1" "robosuite>=1.4" robomimic h5py opencv-python-headl
 # re-pin numpy<2 in case a dep bumped it
 pip install -q "numpy<2"
 
-# LIBERO prompts interactively for dataset paths on first use ("specify a custom path? (Y/N)"),
-# which hangs in a notebook. Answer "N" (use defaults) non-interactively to write ~/.libero/config.yaml.
-echo "[setup] initializing LIBERO path config non-interactively"
-yes "N" | python -c "from libero.libero import get_libero_path; get_libero_path('bddl_files')" >/dev/null 2>&1 || true
-python -c "import os;p=os.path.expanduser('~/.libero/config.yaml');print('[setup] LIBERO config '+('created' if os.path.exists(p) else 'MISSING (will still prompt)'))"
+# LIBERO prompts interactively for dataset paths on first use ("specify a custom path? (Y/N)"
+# then "continue? (Y/N)") which hangs notebooks. Write ~/.libero/config.yaml directly to skip it.
+echo "[setup] writing LIBERO config directly (no prompt)"
+python -c "import sys; sys.path.insert(0, '$(pwd)'); from drc.envs import _ensure_libero_config; _ensure_libero_config()"
+python -c "import os;p=os.path.expanduser('~/.libero/config.yaml');print('[setup] LIBERO config '+('written' if os.path.exists(p) else 'MISSING'))"
 
 echo "[setup] === import check (must all succeed) ==="
 python - <<'PY'

@@ -41,13 +41,13 @@ except Exception as e:
     problems.append(f"numpy/torch: {e}")
 
 print("=== 2. functional: build one real LIBERO env (tests headless rendering) ===")
-# LIBERO prompts for paths on first use; create the config non-interactively first so the
-# env build below cannot hang waiting on stdin.
-import subprocess
-subprocess.run(
-    "yes N | python -c 'from libero.libero import get_libero_path; get_libero_path(\"bddl_files\")'",
-    shell=True, capture_output=True, timeout=180,
-)
+# Write ~/.libero/config.yaml directly so LIBERO never enters its interactive setup.
+try:
+    from drc.envs import _ensure_libero_config
+    _ensure_libero_config()
+    print("  LIBERO config ensured (no interactive prompt)")
+except Exception as e:
+    problems.append(f"libero config: {e}")
 try:
     from drc import config
     from drc.envs import make_env
