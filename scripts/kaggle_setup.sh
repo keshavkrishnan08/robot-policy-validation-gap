@@ -30,6 +30,7 @@ pip install -q \
   bddl \
   robomimic \
   h5py \
+  huggingface_hub \
   opencv-python-headless \
   easydict thop einops "gym==0.25.2" future cloudpickle "hydra-core>=1.2" || \
   echo "[setup] WARN: a sim dep failed; see above"

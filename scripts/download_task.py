@@ -9,6 +9,7 @@ delete per task and never exceed a few GB at once.
   python scripts/download_task.py Robomimic-Square-PH --clean # delete it afterwards
 """
 import argparse
+import glob
 import os
 import shutil
 import subprocess
@@ -22,15 +23,44 @@ from drc.utils import get_logger
 log = get_logger("download")
 
 ROBOMIMIC_DATA = os.environ.get("ROBOMIMIC_DATA", "/kaggle/working/data/robomimic")
+# LIBERO demos live in this public HF dataset, one flat folder of *.hdf5 per suite.
+LIBERO_HF_REPO = "yifengzhu-hf/LIBERO-datasets"
 
 
 def libero_suite_dir(suite):
-    # LIBERO downloads into the package "datasets" dir, one subfolder per suite.
+    # LIBERO reads demos from the package "datasets" dir, one subfolder per suite.
     try:
         from libero.libero import get_libero_path
         return os.path.join(get_libero_path("datasets"), suite)
     except Exception:
         return None
+
+
+def download_libero(suite, bddl):
+    """Pull just the ONE demo file this task needs from HuggingFace (~0.6 GB vs ~6 GB/suite).
+
+    LIBERO's own downloader (`libero.libero.scripts...`) is not a real module path and the
+    benchmark-script location moves between versions, so we go straight to the HF dataset.
+    The demo file is named exactly ``{bddl}_demo.hdf5``; if that pattern matches nothing we
+    fall back to the whole suite folder so a naming drift can't leave us empty-handed.
+    """
+    from huggingface_hub import snapshot_download
+
+    from libero.libero import get_libero_path
+    dest = get_libero_path("datasets")          # .../LIBERO/libero/datasets
+    os.makedirs(dest, exist_ok=True)
+    suite_dir = os.path.join(dest, suite)
+
+    one = f"{suite}/{bddl}_demo.hdf5"
+    log.info(f"hf download {LIBERO_HF_REPO} :: {one} -> {dest}")
+    snapshot_download(repo_id=LIBERO_HF_REPO, repo_type="dataset",
+                      local_dir=dest, allow_patterns=[one])
+    if not (os.path.isdir(suite_dir) and glob.glob(os.path.join(suite_dir, "*.hdf5"))):
+        log.info(f"single-file pattern '{one}' matched nothing; pulling whole suite '{suite}'")
+        snapshot_download(repo_id=LIBERO_HF_REPO, repo_type="dataset",
+                          local_dir=dest, allow_patterns=[f"{suite}/*"])
+    got = glob.glob(os.path.join(suite_dir, "*.hdf5")) if os.path.isdir(suite_dir) else []
+    log.info(f"LIBERO suite '{suite}': {len(got)} hdf5 file(s) present")
 
 
 def main(task, clean):
@@ -42,10 +72,7 @@ def main(task, clean):
             if d and os.path.isdir(d):
                 shutil.rmtree(d, ignore_errors=True); log.info(f"removed {d}")
             return
-        # download ONLY this suite (not all of LIBERO)
-        cmd = [sys.executable, "-m", "libero.libero.scripts.download_datasets", "--datasets", suite]
-        log.info("download: " + " ".join(cmd))
-        subprocess.run(cmd, stdin=subprocess.DEVNULL, check=False)
+        download_libero(suite, cfg["bddl"])
     else:
         bench = cfg["benchmark"]             # lift / can / square / transport
         task_dir = os.path.join(ROBOMIMIC_DATA, bench)
