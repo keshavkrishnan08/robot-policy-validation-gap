@@ -4,6 +4,10 @@
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
+# Render MuJoCo offscreen on the GPU (EGL). Without this MuJoCo can fall back to CPU osmesa,
+# which makes the 20-rollout-per-checkpoint eval crawl. Confirmed working in check_install.
+export MUJOCO_GL=egl
+
 LIBERO_TASKS=(LIBERO-Spatial-1 LIBERO-Object-1 LIBERO-Goal-1 LIBERO-Long-1)
 # 3 seeds (n=48) if both T4s activate; if you must run on a single T4, set SEEDS="0 1" (n=32).
 SEEDS="${SEEDS:-0 1 2}"

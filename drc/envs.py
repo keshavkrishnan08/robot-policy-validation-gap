@@ -15,6 +15,30 @@ from __future__ import annotations
 import numpy as np
 
 
+def _silence_egl_shutdown_noise():
+    """robosuite's EGL context __del__ runs during interpreter shutdown, after EGL is already torn
+    down, so it raises a harmless EGLError that Python prints as a multi-line 'Exception ignored in'
+    traceback. It does not affect rendering or results — it just buries real errors in the log. Route
+    those specific unraisable exceptions to /dev/null while leaving every other one untouched."""
+    import sys
+
+    prev = getattr(sys, "unraisablehook", None)
+
+    def hook(unraisable):
+        exc = unraisable.exc_value
+        name = type(exc).__name__ if exc else ""
+        msg = f"{name}: {exc}" if exc else ""
+        if "EGLError" in name or "eglDestroyContext" in msg or "EGL_NOT_INITIALIZED" in msg:
+            return  # swallow the cosmetic EGL teardown error
+        if prev is not None:
+            prev(unraisable)
+
+    sys.unraisablehook = hook
+
+
+_silence_egl_shutdown_noise()
+
+
 def _ensure_libero_config():
     """Write ~/.libero/config.yaml with default package-relative paths so LIBERO never enters its
     interactive first-run setup (which prompts on stdin and hangs notebooks). Idempotent; no-op if
