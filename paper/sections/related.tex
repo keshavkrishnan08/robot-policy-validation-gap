@@ -39,8 +39,14 @@ noise distribution of a frozen Diffusion Policy via Monte Carlo evaluation, impr
 success on 38 of 43 tasks. \citet{wang2026ppguide} train a performance predictor on
 rollout-labeled action chunks and use it to steer policy execution at inference time.
 \citet{anwar2025} allocate a fixed rollout budget across tasks using active experiment
-selection. These works collectively establish that rollout-based evaluation is the trusted
-standard and is becoming cheap enough to use routinely. Our contribution is the orthogonal
+selection. A parallel real-to-sim line builds simulators whose success correlates with real-world
+performance: SIMPLER~\citep{li2024simpler}, PolaRiS~\citep{polaris2025}, and high-fidelity
+sim-to-real benchmarking~\citep{nvidia2025eval} all validate that simulated rankings track real
+ones, and RoboArena crowdsources real-robot evaluation directly. Our question is upstream of all of
+these: not how to evaluate cheaply by rollout or sim, but whether any signal computable
+\emph{without} rolling out at all suffices. These works collectively establish that
+rollout-based and sim-based evaluation are the trusted standards and are becoming cheap enough to
+use routinely. Our contribution is the orthogonal
 question: \emph{can any signal computable without rollouts recover the deployment outcome?}
 If the answer is yes, training pipelines become substantially cheaper; if no, this cluster's
 rollout-based approach is the principled one, and we provide the calibrated evidence for
