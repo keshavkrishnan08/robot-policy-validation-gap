@@ -21,12 +21,15 @@ launch() {  # pin each job to the next GPU; cap concurrency at NGPU
   while (( $(jobs -r | wc -l) >= NGPU )); do wait -n; done
 }
 
-echo "[S1] SA-1 setup + download"
-python scripts/01_setup.py --download
-python scripts/make_eval_conditions.py
+echo "[S1] SA-1 prelock check (data is downloaded per task below, NOT in bulk)"
+python scripts/01_setup.py    # verify pre-lock only; NO --download (that pulls the whole benchmark)
 
-# Per-task interleave with checkpoint pruning keeps peak storage to one task (~5GB) << 20GB cap.
+# Per-task interleave: download THIS task's data -> train -> eval -> delete data + checkpoints.
+# Bounds peak disk to one task (a few GB) instead of the whole benchmark (100s of GB).
 for task in "${LIBERO_TASKS[@]}"; do
+  echo "[S1] === task $task: download data ==="
+  python scripts/download_task.py "$task"
+  python scripts/make_eval_conditions.py --tasks "$task"
   echo "[S1] === task $task: train (across $NGPU GPU) ==="
   for arch in diffusion act; do
     for seed in $SEEDS; do
@@ -34,9 +37,10 @@ for task in "${LIBERO_TASKS[@]}"; do
     done
   done
   wait   # finish this task's training before evaluating
-  echo "[S1] === task $task: metrics + rollouts (on T4), then prune ==="
+  echo "[S1] === task $task: metrics + rollouts (on T4), then free disk ==="
   python scripts/03_metrics.py  --tasks "$task" --all_archs --device cuda
   python scripts/04_rollouts.py --tasks "$task" --all_archs --device cuda
   rm -rf "checkpoints/$task"
+  python scripts/download_task.py "$task" --clean   # delete this task's demos
 done
 echo "[S1] done — results/metrics.csv + results/rollouts.csv hold all LIBERO rows"

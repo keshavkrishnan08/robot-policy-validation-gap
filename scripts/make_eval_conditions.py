@@ -17,8 +17,9 @@ from drc.utils import ensure_dir, get_logger, path
 log = get_logger("eval_conditions")
 
 
-def main(synthetic: bool, n: int):
-    for i, task in enumerate(config.TASKS):
+def main(synthetic: bool, n: int, tasks=None):
+    selected = tasks or list(config.TASKS)
+    for i, task in enumerate(selected):
         if synthetic:
             from drc.data.synthetic import make_eval_conditions
 
@@ -39,5 +40,7 @@ if __name__ == "__main__":
     ap = argparse.ArgumentParser()
     ap.add_argument("--synthetic", action="store_true")
     ap.add_argument("--n", type=int, default=20)
+    ap.add_argument("--tasks", default=None, help="comma list (default all)")
     args = ap.parse_args()
-    main(args.synthetic, args.n)
+    tasks = [t.strip() for t in args.tasks.split(",")] if args.tasks else None
+    main(args.synthetic, args.n, tasks)

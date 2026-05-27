@@ -16,8 +16,12 @@ launch() {
   while (( $(jobs -r | wc -l) >= NGPU )); do wait -n; done
 }
 
-# Per-task interleave with pruning (storage discipline as Session 1).
+# Per-task interleave: download THIS task's data -> train -> eval -> delete data + checkpoints.
+# Bounds peak disk to one task instead of the whole benchmark.
 for task in "${RM_TASKS[@]}"; do
+  echo "[S2] === task $task: download data ==="
+  python scripts/download_task.py "$task"
+  python scripts/make_eval_conditions.py --tasks "$task"
   echo "[S2] === task $task: train (across $NGPU GPU) ==="
   for arch in diffusion act; do
     for seed in $SEEDS; do
@@ -25,10 +29,11 @@ for task in "${RM_TASKS[@]}"; do
     done
   done
   wait
-  echo "[S2] === task $task: metrics + rollouts (on T4), then prune ==="
+  echo "[S2] === task $task: metrics + rollouts (on T4), then free disk ==="
   python scripts/03_metrics.py  --tasks "$task" --all_archs --device cuda
   python scripts/04_rollouts.py --tasks "$task" --all_archs --device cuda
   rm -rf "checkpoints/$task"
+  python scripts/download_task.py "$task" --clean
 done
 
 echo "[S2] SA-5 analysis + figures"
