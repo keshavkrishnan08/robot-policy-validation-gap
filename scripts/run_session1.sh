@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# Kaggle Session 1 (≤12h): setup + LIBERO training + LIBERO metrics/rollouts.
-# Runs the 4 LIBERO tasks (12 of the 18 runs) on dual T4, then evaluates them.
+# Kaggle Session (≤12h): the full reduced-scope study — LIBERO training + metrics/rollouts.
+# Runs the 3 LIBERO tasks x 2 archs x 3 seeds (18 runs, 90 checkpoints) on dual T4, then evaluates.
 set -euo pipefail
 cd "$(dirname "$0")/.."
 

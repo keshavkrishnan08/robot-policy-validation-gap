@@ -16,8 +16,8 @@ bootstrap:
 
 # Metric direction: which metrics are "lower is better" w.r.t. policy quality.
 # Used to sign-flip Spearman so a positive value always means "predictive".
-lower_is_better: [M1, M2, M4, M7]
-higher_is_better: [M3, M5, M6, M8]
+lower_is_better: [M1, M2, M4, M5, M6, M7]   # matches drc.config.LOWER_IS_BETTER (authoritative)
+higher_is_better: [M3, M8]
 # Rationale per metric:
 #   M1 validation L1            lower better
 #   M2 delta MSE                lower better
@@ -40,8 +40,8 @@ h2:
 h3:
   spearman_margin: 0.0             # any metric beating M1 with corrected p < alpha
 h4:
-  train_tasks: [LIBERO-Spatial-1, LIBERO-Goal-1, LIBERO-Long-1, Robomimic-Square-PH]
-  held_out_tasks: [LIBERO-Object-1, Robomimic-Transport-PH]
+  train_tasks: [LIBERO-Spatial-1, LIBERO-Goal-1]   # extrapolate composite to held-out longest horizon
+  held_out_tasks: [LIBERO-Long-1]
   ridge_alphas: [0.01, 0.1, 1, 10, 100]
   ridge_cv_folds: 5
   rmse_improvement_threshold: 0.20  # composite RMSE must be >=20% below baseline
