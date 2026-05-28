@@ -45,35 +45,36 @@ functional of $\pi$ alone can identify $L(\pi)$, because two environments agreei
 differing in $\partial_a f$ elsewhere give the same policy, the same $b{=}0$ score, and different
 $\delta_H$. Everything below is a consequence.
 
-\paragraph{Selection and a query budget.} A metric selects $\hat\pi_m=\arg\min_i m(\pi_i)$; regret is
-$R(m)=\Pr[\exists i\,\mathrm{Succ}(\pi_i)]-\Pr[\mathrm{Succ}(\hat\pi_m)]$. For a population of checkpoints
-let $\mathcal F^\star=\sigma(\pi\!\mid_{d^\star})$ be the information identifiable from $d^\star$, and
-write $\rho(m)=\big|\mathrm{Spearman}\big(m(\pi),\,\delta_H(\pi)\big)\big|$ for predictiveness
-(Spearman, so monotone-invariant and well defined on the continuous $\delta_H$).
+\paragraph{Selection, and the decoupled regime.} A metric selects $\hat\pi_m=\arg\min_i m(\pi_i)$ with
+regret $R(m)=\Pr[\exists i\,\mathrm{Succ}(\pi_i)]-\Pr[\mathrm{Succ}(\hat\pi_m)]$; predictiveness is
+$\rho(m)=|\mathrm{Spearman}(m,\delta_H)|$. Let $\mathcal F^\star=\sigma(\pi\!\mid_{d^\star})$ be all that
+$d^\star$ identifies. Two facts pin the problem. First, the per-step error $\varepsilon$ \emph{is} the
+validation loss --- an $\mathcal F^\star$ functional --- so it is the most any $b{=}0$ metric can
+exploit. Second, split the log-gain $\log L=\mu^\star+\xi$ into its $\mathcal F^\star$-measurable part
+$\mu^\star$ and an orthogonal remainder $\xi$, the \emph{off-manifold gain} that only querying $f$ off
+$d^\star$ reveals; write $q:=\mathrm{Var}\,\xi$. The hard, empirically typical case is the
+\emph{decoupled} regime $\varepsilon\perp\log L$: how faithfully a policy imitates on-distribution says
+nothing about how the world amplifies its drift off it.
 
-\begin{theorem}[Predictiveness is capped and strictly decays with horizon]\label{thm:pred}
-Let $\rho^2(m)$ be the share of $\mathrm{Var}(\log\delta_H)$ explained by $m$ (the rank-$R^2$ on the
-log-deviation, monotone-equivalent to $\mathrm{Spearman}(m,\delta_H)^2$ under a log-normal surrogate).
-Every $b{=}0$ metric is $\mathcal F^\star$-measurable, so $\rho^2(m)\le s(H)$, the share explained by
-the best $\mathcal F^\star$-predictor. Write $\log L=\mu^\star+\xi$, with $\mu^\star$ the
-$\mathcal F^\star$-measurable part of the log-gain and $\xi\perp\mathcal F^\star$ the part identifiable
-only by querying $f$ off $d^\star$, and suppose $\varepsilon$ is $\mathcal F^\star$-measurable with
-$\varepsilon\perp\log L$. Since $\log\delta_H=\log\varepsilon+H\log L+O(1)$,
+\begin{theorem}[The off-manifold gain variance caps offline predictiveness]\label{thm:pred}
+Model $(\log\varepsilon,\log L)$ as jointly Gaussian, so the rank statistic $\rho^2$ equals the Pearson
+$R^2$ on $\log\delta_H$. Every $b{=}0$ metric is $\mathcal F^\star$-measurable, hence
+$\rho^2(m)\le s(H)$, the variance share explained by the best $\mathcal F^\star$-predictor. In the
+decoupled regime, using $\log\delta_H=\log\varepsilon+H\log L+O(1)$,
 \[ s(H)=\frac{a+H^2 p}{\,a+H^2(p+q)\,},\qquad a:=\mathrm{Var}\log\varepsilon,\ \ p:=\mathrm{Var}\,\mu^\star,\ \ q:=\mathrm{Var}\,\xi, \]
-which is \emph{strictly decreasing} in $H$ whenever $q>0$, with limit $p/(p+q)<1$, and $\to0$ when the
-gain is not identifiable on $d^\star$ ($p{=}0$).
+strictly decreasing in $H$ whenever $q>0$ ($\partial_{(H^2)}s=-aq/[\,a+H^2(p+q)\,]^2<0$), with limit
+$p/(p+q)$ and $\to0$ when the gain is unidentifiable on $d^\star$ ($p{=}0$). A single scalar, the
+off-manifold gain variance $q$, sets the ceiling.
 \end{theorem}
 \begin{proof}
-Measurability gives the cap (data-processing under the $\mathcal F^\star$-coarsening). With
-$\varepsilon\perp\log L$ the cross-covariances vanish, so $\mathrm{Var}\log\delta_H=a+H^2(p+q)$ and the
-$\mathcal F^\star$-explained component is $a+H^2p$ (from $\log\varepsilon$ and $H\mu^\star$); their ratio
-is $s(H)$, and $\partial_{(H^2)}s=-aq/[a+H^2(p+q)]^2<0$.
+Measurability gives the cap. Decoupling annihilates the cross-covariances, so
+$\mathrm{Var}\log\delta_H=a+H^2(p+q)$ with $\mathcal F^\star$-explained component $a+H^2p$ (from
+$\log\varepsilon$ and $H\mu^\star$); their ratio is $s(H)$ and $\partial_{(H^2)}s<0$.
 \end{proof}
 
-This is the falsifiable core: \emph{validation-loss predictiveness must fall as horizon grows, by an
-amount set by how much of the gain is off-manifold}. Part~B tests the ordering across the
-short/medium/long ladder (H1--H3, a coarse $3$-point test); the controlled sweep is the clean test
-(Fig.~\ref{fig:bound}b: $0.31$ vs.\ $0.84$).
+This is the falsifiable core: \emph{offline predictiveness falls with horizon at a rate set by one
+quantity, $q$}. Part~B tests the ordering across the short/medium/long ladder (H1--H3, a coarse
+$3$-point test); the controlled sweep is the clean test (Fig.~\ref{fig:bound}b: $0.31$ vs.\ $0.84$).
 
 \begin{theorem}[Zero-query impossibility]\label{thm:imposs}
 Fix $L>1$ and $\zeta>0$. There exist $\pi_A,\pi_B$ with $|m(\pi_A)-m(\pi_B)|\le\zeta$ for \emph{every}
@@ -84,8 +85,9 @@ off-manifold gain $\xi$ is non-degenerate, every $b{=}0$ metric has $R(m)\ge R(\
 Let $\pi_A,\pi_B$ agree with $\pi^\star$ on $\mathrm{supp}(d^\star)$ up to $\zeta$ (all $b{=}0$
 functionals agree to $O(\zeta)$); since $L>1$ the shared on-manifold error drives the loop off
 $d^\star$ in $\le H$ steps into a region where $f$ is contractive for $\pi_A$, expansive for $\pi_B$
-(possible with one fixed $f$ by routing the two policies to different off-manifold states). The label
-is then set by $\xi$, on which $b{=}0$ metrics are blind; ranking is independent of $\mathrm{Succ}$.
+(possible for one fixed $f$ under mild reachability: a contractive and an expansive region are both
+reachable off $d^\star$). The label is then set by $\xi$, to which $b{=}0$ metrics are blind, so ranking
+is independent of $\mathrm{Succ}$.
 \end{proof}
 
 \begin{theorem}[One trajectory is necessary and sufficient]\label{thm:achieve}
@@ -144,13 +146,14 @@ Part~B.}
 \end{figure}
 
 \paragraph{What is new, against close prior work.} \citet{tan2026gain} factorise a \emph{single}
-policy's failure into gain $\times$ validation loss; we study \emph{ranking across a population} and
-prove a selection impossibility and a query-complexity dichotomy, which do not follow from a per-policy
-bound. Off-policy evaluation estimates the \emph{return} (and needs environment models or logged
-interaction to do so); we ask the minimal environment budget to merely \emph{order} checkpoints, and
-show it is one trajectory --- below which, in the expansive regime, ordering is information-theoretically
-impossible. The four results form a closed characterisation: a decay law (Thm~\ref{thm:pred}), matched
-bounds pinning ``can rank'' to a single bit of environment access
-(Thms~\ref{thm:imposs},~\ref{thm:achieve}), a sharp $H^\star$ (Cor.~\ref{cor:wall}), and a measurable
-controlling gain (Prop.~\ref{prop:measurable}). The practical reading is blunt: past the wall no offline
-cleverness recovers the ranking, and one environment query already does.
+policy's failure into gain $\times$ validation loss; we study \emph{ranking across a population}, where
+the controlling object is not the gain but its \emph{variance} $q$, and prove a selection impossibility
+and a query-complexity dichotomy that do not follow from any per-policy bound. The cleanest way to place
+the result is a \emph{selection--estimation gap}: ranking is normally far cheaper than off-policy
+estimation of the return, but in the expansive regime that gap collapses --- both demand environment
+access, and selection's price is exactly one trajectory, no fewer. The four results form a closed
+characterisation: a decay law governed by $q$ (Thm~\ref{thm:pred}), matched bounds pinning ``can rank''
+to a single bit of environment access (Thms~\ref{thm:imposs},~\ref{thm:achieve}), a sharp $H^\star$
+(Cor.~\ref{cor:wall}), and a controlling gain that is measured, not assumed (Prop.~\ref{prop:measurable}).
+The practical reading is blunt: past the wall no offline cleverness recovers the ranking, and one
+environment query already does.
