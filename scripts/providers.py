@@ -48,7 +48,7 @@ def env_for(task: str, synthetic: bool = False, n_obs_steps=2):
     return make_env(task, tasks[task], synthetic=synthetic, n_obs_steps=n_obs_steps)
 
 
-def build_replay_episodes(task: str, synthetic: bool, val_ds, n_obs_steps=2, max_episodes=6):
+def build_replay_episodes(task: str, synthetic: bool, val_ds, n_obs_steps=2, max_episodes=3):
     """Construct M5/M7 open-loop replay episodes from the validation set.
 
     Synthetic: render expert states into stacked obs queries. Real backends would

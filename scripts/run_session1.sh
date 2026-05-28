@@ -9,7 +9,8 @@ cd "$(dirname "$0")/.."
 export MUJOCO_GL=egl
 export PYOPENGL_PLATFORM=egl
 
-LIBERO_TASKS=(LIBERO-Spatial-1 LIBERO-Object-1 LIBERO-Goal-1 LIBERO-Long-1)
+# Reduced TMLR scope: 3 LIBERO tasks spanning the horizon axis (short/medium/long).
+LIBERO_TASKS=(LIBERO-Spatial-1 LIBERO-Goal-1 LIBERO-Long-1)
 # 3 seeds (n=48) if both T4s activate; if you must run on a single T4, set SEEDS="0 1" (n=32).
 SEEDS="${SEEDS:-0 1 2}"
 

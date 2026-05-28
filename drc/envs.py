@@ -132,8 +132,13 @@ class _LiberoEnv(_RobosuiteEnvBase):  # pragma: no cover - Kaggle only
         self.task = task
 
     def _raw(self, obs):
+        from robosuite.utils.transform_utils import quat2axisangle
         img = self._resize(obs["agentview_image"][::-1])  # flip per LIBERO convention
-        pro = np.concatenate([obs["robot0_eef_pos"], obs["robot0_eef_quat"], obs["robot0_gripper_qpos"]])
+        # Match the DEMO proprio exactly: ee_pos(3) + ee_ori as axis-angle(3) + gripper(2) = 8.
+        # The live robosuite obs gives orientation as a 4-D quaternion, but the LIBERO demos store
+        # the 3-D axis-angle (key 'ee_ori'); feed the policy the same 8-D vector it trained on.
+        ee_ori = quat2axisangle(np.asarray(obs["robot0_eef_quat"]))
+        pro = np.concatenate([obs["robot0_eef_pos"], ee_ori, obs["robot0_gripper_qpos"]])
         return {"image": img, "proprio": pro.astype(np.float32), "eef": obs["robot0_eef_pos"]}
 
     def reset_to(self, init_cond):

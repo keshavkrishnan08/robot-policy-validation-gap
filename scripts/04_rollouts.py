@@ -16,7 +16,7 @@ import pandas as pd
 from drc import config
 from drc.rollouts import evaluate_checkpoint
 from drc.train import load_policy
-from drc.utils import ckpt_path, get_logger, path, rollouts_path, save_json
+from drc.utils import ckpt_path, get_logger, load_json, path, rollouts_path, save_json
 from scripts.providers import env_for
 
 log = get_logger("04_rollouts")
@@ -48,6 +48,18 @@ def main(args):
                 for epoch in epochs:
                     cp = ckpt_path(task, seed, epoch, arch)
                     if not os.path.exists(cp):
+                        continue
+                    # Resume: reuse a cached rollout result (survives a 12h-session cut).
+                    rp = rollouts_path(task, seed, epoch, arch)
+                    if os.path.exists(rp):
+                        res = load_json(rp)
+                        if ref_hashes is None:
+                            ref_hashes = res.get("state_hashes")
+                        rows.append({
+                            "task": task, "seed": seed, "arch": arch, "epoch": epoch,
+                            "success_rate": res["success_rate"], "num_successes": res["num_successes"],
+                        })
+                        log.info(f"{task} s{seed} [{arch}] ep{epoch}: success_rate={res['success_rate']:.2f} (cached)")
                         continue
                     pol, _ = load_policy(cp, tcfg, device=args.device)
                     res = evaluate_checkpoint(pol, env, conds, max_steps, device=args.device,

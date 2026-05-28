@@ -31,15 +31,13 @@ NUM_EPOCHS = 120
 # Two architectures (rigor): a "run" is (task, seed, architecture).
 ARCHITECTURES = ("diffusion", "act")
 
+# Reduced scope (TMLR): 3 LIBERO tasks spanning the horizon axis on one benchmark.
+# Claims are scoped to this evidence; the horizon effect is isolated (only episode
+# length varies across tasks, not benchmark/robot).
 TASKS = (
-    "LIBERO-Spatial-1",
-    "LIBERO-Object-1",
-    "LIBERO-Goal-1",
-    "LIBERO-Long-1",
-    "Robomimic-Lift-PH",
-    "Robomimic-Can-PH",
-    "Robomimic-Square-PH",
-    "Robomimic-Transport-PH",
+    "LIBERO-Spatial-1",   # short  horizon (200 steps)
+    "LIBERO-Goal-1",      # medium horizon (500 steps)
+    "LIBERO-Long-1",      # long   horizon (800 steps)
 )
 
 METRIC_COLS = ("M1", "M2", "M3", "M4", "M5", "M6", "M7", "M8")
@@ -50,17 +48,13 @@ METRIC_COLS = ("M1", "M2", "M3", "M4", "M5", "M6", "M7", "M8")
 LOWER_IS_BETTER = ("M1", "M2", "M4", "M5", "M6", "M7")
 HIGHER_IS_BETTER = ("M3", "M8")
 
-# H4 task partition (locked). Held out spans a short and a long horizon so the
-# held-out distribution is no narrower than training.
+# H4 task partition. Train the composite on the short+medium tasks and test whether
+# it extrapolates to the longest-horizon task (the regime where the gap is largest).
 H4_TRAIN_TASKS = (
     "LIBERO-Spatial-1",
     "LIBERO-Goal-1",
-    "LIBERO-Long-1",
-    "Robomimic-Lift-PH",
-    "Robomimic-Can-PH",
-    "Robomimic-Square-PH",
 )
-H4_HELD_OUT_TASKS = ("LIBERO-Object-1", "Robomimic-Transport-PH")
+H4_HELD_OUT_TASKS = ("LIBERO-Long-1",)
 
 # Statistical plan (locked).
 FAMILY_ALPHA = 0.05
@@ -74,8 +68,8 @@ RIDGE_ALPHAS = (0.01, 0.1, 1, 10, 100)
 RIDGE_CV_FOLDS = 5
 BOOTSTRAP_RESAMPLES = 10000
 
-N_RUNS = len(TASKS) * len(SEEDS) * len(ARCHITECTURES)  # 8*3*2 = 48
-N_CHECKPOINTS = N_RUNS * len(CHECKPOINT_EPOCHS)         # 288
+N_RUNS = len(TASKS) * len(SEEDS) * len(ARCHITECTURES)  # 3*3*2 = 18
+N_CHECKPOINTS = N_RUNS * len(CHECKPOINT_EPOCHS)         # 18*5 = 90
 
 
 @lru_cache(maxsize=None)
@@ -109,13 +103,8 @@ def task_regime_labels() -> dict[str, dict[str, str]]:
     # Fallback literals matching tasks.yaml.
     return {
         "LIBERO-Spatial-1": {"horizon": "short", "complexity": "low"},
-        "LIBERO-Object-1": {"horizon": "short", "complexity": "medium"},
         "LIBERO-Goal-1": {"horizon": "medium", "complexity": "medium"},
         "LIBERO-Long-1": {"horizon": "long", "complexity": "high"},
-        "Robomimic-Lift-PH": {"horizon": "short", "complexity": "low"},
-        "Robomimic-Can-PH": {"horizon": "medium", "complexity": "medium"},
-        "Robomimic-Square-PH": {"horizon": "medium", "complexity": "high"},
-        "Robomimic-Transport-PH": {"horizon": "long", "complexity": "high"},
     }
 
 

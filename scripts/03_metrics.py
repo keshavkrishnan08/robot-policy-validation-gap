@@ -18,7 +18,7 @@ from torch.utils.data import DataLoader
 from drc import config, metrics as M
 from drc.data.dataset import collate
 from drc.train import load_policy
-from drc.utils import ckpt_path, get_logger, metrics_path, path, save_json
+from drc.utils import ckpt_path, get_logger, load_json, metrics_path, path, save_json
 from scripts.providers import build_replay_episodes, dataset_provider, env_for
 
 log = get_logger("03_metrics")
@@ -47,20 +47,30 @@ def main(args):
 
         for arch in archs:
             for epoch in epochs:
-                # M6 from the seed ensemble for this (task, arch, epoch).
-                seed_policies = {}
-                for seed in config.SEEDS:
-                    cp = ckpt_path(task, seed, epoch, arch)
-                    if os.path.exists(cp):
-                        pol, _ = load_policy(cp, tcfg, device=args.device)
-                        seed_policies[seed] = pol
-                if not seed_policies:
+                present = [s for s in config.SEEDS if os.path.exists(ckpt_path(task, s, epoch, arch))]
+                if not present:
                     log.warning(f"no checkpoints for {task} [{arch}] epoch {epoch}; skipping")
                     continue
+                # Resume: reuse any per-checkpoint JSON already computed (survives a 12h-session cut).
+                cached = {s: load_json(metrics_path(task, s, epoch, arch))
+                          for s in present if os.path.exists(metrics_path(task, s, epoch, arch))}
+                missing = [s for s in present if s not in cached]
+                if not missing:
+                    for s in present:
+                        rows.append(cached[s])
+                    log.info(f"{task} [{arch}] ep{epoch}: {len(present)} seeds cached, skipping")
+                    continue
+
+                # M6 (inter-seed disagreement) needs the full seed ensemble for this (task, arch, epoch).
+                seed_policies = {s: load_policy(ckpt_path(task, s, epoch, arch), tcfg, device=args.device)[0]
+                                 for s in present}
                 m6 = M.compute_m6(list(seed_policies.values()), vl, args.device, K=mcfg.get("m1_K", 10))
 
-                for seed, pol in seed_policies.items():
-                    single = M.compute_single_checkpoint(pol, tl, vl, env, replay, args.device, mcfg)
+                for seed in present:
+                    if seed in cached:
+                        rows.append(cached[seed])
+                        continue
+                    single = M.compute_single_checkpoint(seed_policies[seed], tl, vl, env, replay, args.device, mcfg)
                     single["M6"] = m6
                     vals = {m: single[m] for m in config.METRIC_COLS}
                     # Rollout-free metrics MUST be finite. M5/M7 (open-loop replay) may be NaN if

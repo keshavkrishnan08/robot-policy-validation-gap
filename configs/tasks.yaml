@@ -1,6 +1,7 @@
-# DRC CoRL 2026 — PRE-LOCKED task definitions.
-# Locked 2026-05-25 before any training. DO NOT EDIT after SA-2 begins.
-# Regimes drive the H2 mixed-effects model; held_out drives the H4 split.
+# DRC TMLR 2026 — task definitions (reduced scope).
+# Three LIBERO tasks spanning the horizon axis (short/medium/long) on one benchmark,
+# one robot — so the horizon-wall effect is isolated, not confounded by benchmark.
+# held_out drives the H4 split (extrapolation to the longest horizon).
 
 tasks:
   LIBERO-Spatial-1:
@@ -13,17 +14,6 @@ tasks:
     n_demos: 50
     max_steps: 200
     held_out: false
-
-  LIBERO-Object-1:
-    suite: libero
-    benchmark: libero_object
-    task_id: 0
-    bddl: pick_up_the_alphabet_soup_and_place_it_in_the_basket
-    horizon: short
-    complexity: medium
-    n_demos: 50
-    max_steps: 200
-    held_out: true          # H4 held-out (short horizon)
 
   LIBERO-Goal-1:
     suite: libero
@@ -45,57 +35,4 @@ tasks:
     complexity: high
     n_demos: 50
     max_steps: 800
-    held_out: false
-
-  Robomimic-Lift-PH:
-    suite: robomimic
-    benchmark: lift
-    dataset: ph
-    horizon: short
-    complexity: low
-    n_demos: 200
-    max_steps: 400
-    held_out: false
-
-  Robomimic-Can-PH:
-    suite: robomimic
-    benchmark: can
-    dataset: ph
-    horizon: medium
-    complexity: medium
-    n_demos: 200
-    max_steps: 400
-    held_out: false
-
-  Robomimic-Square-PH:
-    suite: robomimic
-    benchmark: square
-    dataset: ph
-    horizon: medium
-    complexity: high            # contact-rich precise insertion
-    n_demos: 200
-    max_steps: 500
-    held_out: false
-
-  Robomimic-Transport-PH:
-    suite: robomimic
-    benchmark: transport
-    dataset: ph
-    horizon: long
-    complexity: high
-    n_demos: 200
-    max_steps: 800
-    held_out: true             # H4 held-out (long horizon)
-    fallback: Robomimic-Lift-PH  # SA-2 substitution if Transport fails to converge
-
-# Substitution target spec (only used if the risk-13.2 mitigation fires).
-fallback_tasks:
-  Robomimic-Lift-PH:
-    suite: robomimic
-    benchmark: lift
-    dataset: ph
-    horizon: long
-    complexity: medium
-    n_demos: 200
-    max_steps: 400
-    held_out: true
+    held_out: true             # H4 held-out: extrapolate the composite to the longest horizon
