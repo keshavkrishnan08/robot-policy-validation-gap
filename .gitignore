@@ -27,3 +27,6 @@ paper/*.blg
 paper/*.log
 paper/*.out
 paper/*.pdf
+
+# Local tool config
+CLAUDE.md
