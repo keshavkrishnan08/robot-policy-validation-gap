@@ -5,7 +5,7 @@ generalist policies (SIMPLER's comparison set) better than validation MSE, whose
 real-success correlation SIMPLER pegs at Pearson r = 0.308.
 
 Two halves:
-  1. Architecture-agnostic metric computation over a generic PolicyAdapter — only
+  1. Architecture-agnostic metric computation over a generic PolicyAdapter, only
      needs predict(obs)->action and optional sample(obs)->action. Per-policy
      inference runs on Kaggle (heterogeneous frameworks); see scripts/06.
   2. correlate_with_real_success(): the analysis that compares each offline metric's
@@ -20,7 +20,7 @@ import numpy as np
 from scipy.stats import pearsonr, spearmanr
 
 # SIMPLER (Li et al. 2024, Table I): published correlation of validation MSE with
-# real-world success — the baseline our offline metrics must beat.
+# real-world success: the baseline our offline metrics must beat.
 SIMPLER_MSE_REAL_PEARSON = 0.308
 SIMPLER_SIM_REAL_PEARSON = 0.924
 

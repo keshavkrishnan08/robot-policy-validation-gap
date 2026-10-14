@@ -39,7 +39,7 @@ def test_sweep_env_perfect_tracking():
 def test_sweep_env_error_reduces_tracking():
     # Design-independent invariant: a persistent action error lowers the tracking fraction
     # relative to perfect tracking. (Tested at L<1 to avoid boundary saturation, which is a
-    # known limitation of this controlled realization for L>1 — see EXPERIMENTAL_DESIGN.md.)
+    # known limitation of this controlled realization for L>1, see EXPERIMENTAL_DESIGN.md.)
     def final_track_frac(action_fn, L=0.9, steps=20):
         env = SweepEnv(L=L, max_steps=steps)
         env.reset_to({"state": np.array([0.25, 0.25, 0, 0], dtype=np.float32)})

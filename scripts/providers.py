@@ -77,7 +77,7 @@ def build_replay_episodes(task: str, synthetic: bool, val_ds, n_obs_steps=2, max
             )
         return episodes
 
-    # Real backends: build from the val demos' obs + initial sim states. Defensive — any failure
+    # Real backends: build from the val demos' obs + initial sim states. Defensive, any failure
     # returns [] so M5/M7 degrade to NaN (logged) rather than crashing the whole run.
     from drc import config
     from drc.utils import get_logger

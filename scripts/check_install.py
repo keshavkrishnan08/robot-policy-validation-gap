@@ -54,7 +54,7 @@ try:
     from drc import config
     from drc.envs import make_env
 
-    # A misconfigured GL backend doesn't error — it HANGS on the first offscreen render. Bound the
+    # A misconfigured GL backend doesn't error: it HANGS on the first offscreen render. Bound the
     # whole build+render with SIGALRM so this check fails loudly in seconds instead of blocking.
     def _timeout(_sig, _frm):
         raise TimeoutError("env build/render exceeded 120s — almost certainly a headless-GL hang "

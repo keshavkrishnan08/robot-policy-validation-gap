@@ -1,4 +1,4 @@
-"""ACT — Action Chunking with Transformers (Zhao et al. 2023), as the second
+"""ACT: Action Chunking with Transformers (Zhao et al. 2023), as the second
 architecture for the validation-gap study.
 
 A compact CVAE-transformer that satisfies the same inference interface as

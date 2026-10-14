@@ -51,7 +51,7 @@ def build_policy(info: dict, train_cfg: dict, backbone: str = "smallcnn", arch: 
 
 @torch.no_grad()
 def validation_l1(policy, val_loader, device, K: int) -> float:
-    """Mean per-dim L1 over the prediction horizon — the M1 quantity (PRD 8.1)."""
+    """Mean per-dim L1 over the prediction horizon, the M1 quantity (PRD 8.1)."""
     policy.eval()
     errs = []
     for batch in val_loader:

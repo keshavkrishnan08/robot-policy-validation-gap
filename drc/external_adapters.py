@@ -3,7 +3,7 @@
 These wrap public SIMPLER-comparison policies behind the minimal interface
 drc.external_validation expects (predict / sample). Kaggle-only: they import heavy,
 framework-specific deps lazily and are NOT runnable on the dev box. UNTESTED here
-(no weights / GPU) — verify each against its upstream API on first Kaggle run.
+(no weights / GPU): verify each against its upstream API on first Kaggle run.
 
 Run each framework in its own session (TF for RT-1, JAX for Octo, PyTorch for OpenVLA);
 write external/<policy>_metrics.json with compute_external_metrics, then combine offline.
@@ -63,7 +63,7 @@ class SimplerWrappedAdapter:  # pragma: no cover - Kaggle, via SimplerEnv-OpenVL
 
     Construct with a policy that exposes `step(obs)->action` (the SimplerEnv inference API);
     `sample` falls back to `predict` for deterministic policies (RT-1), which makes M3/M8
-    degenerate for them — report those metrics only for policies that support sampling.
+    degenerate for them: report those metrics only for policies that support sampling.
     """
 
     def __init__(self, policy, name):

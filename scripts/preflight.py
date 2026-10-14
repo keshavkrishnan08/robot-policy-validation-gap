@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Preflight readiness gate — verify the full experiment is wired to run.
+"""Preflight readiness gate: verify the full experiment is wired to run.
 
 Runs on CPU with no training and no heavy deps. Checks every real-run code path
 structurally so a Kaggle session does not fail three hours in:

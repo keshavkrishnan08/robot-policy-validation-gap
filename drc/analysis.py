@@ -302,7 +302,7 @@ def h4_analysis(df: pd.DataFrame) -> dict[str, Any]:
 
 
 # --------------------------------------------------------------------------- #
-# Secondary analysis A: causal selection analysis (Upgrade 2 — 2026-05-25)   #
+# Secondary analysis A: causal selection analysis (Upgrade 2, 2026-05-25)   #
 # Pre-registered as exploratory; added before any training.                   #
 # --------------------------------------------------------------------------- #
 
@@ -316,7 +316,7 @@ def causal_selection_analysis(df: pd.DataFrame) -> dict[str, Any]:
     and compute the expected deployed success rate across runs.
 
     Answers: 'If I had used metric M to pick checkpoints, what deployed success
-    rate would I have achieved?' — the practitioner-facing complement to H3.
+    rate would I have achieved?': the practitioner-facing complement to H3.
     """
     results = {}
     for m in METRIC_COLS:
@@ -351,7 +351,7 @@ def causal_selection_analysis(df: pd.DataFrame) -> dict[str, Any]:
 
 
 # --------------------------------------------------------------------------- #
-# Secondary analysis B: coherence hypothesis (Upgrade 1 — 2026-05-25)        #
+# Secondary analysis B: coherence hypothesis (Upgrade 1, 2026-05-25)        #
 # --------------------------------------------------------------------------- #
 
 # Coherence hypothesis: metrics that measure global trajectory coherence

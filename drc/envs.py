@@ -16,7 +16,7 @@ import os as _os
 
 # Pin MuJoCo/PyOpenGL to GPU EGL offscreen rendering BEFORE any mujoco/robosuite import.
 # Without this, on a headless node (Kaggle) MuJoCo's GL backend auto-selection blocks
-# indefinitely the first time an offscreen render context is created — which is the metrics/
+# indefinitely the first time an offscreen render context is created, which is the metrics/
 # rollout step, after training has already burned hours. setdefault lets the shell override.
 _os.environ.setdefault("MUJOCO_GL", "egl")
 _os.environ.setdefault("PYOPENGL_PLATFORM", "egl")
@@ -27,7 +27,7 @@ import numpy as np
 def _silence_egl_shutdown_noise():
     """robosuite's EGL context __del__ runs during interpreter shutdown, after EGL is already torn
     down, so it raises a harmless EGLError that Python prints as a multi-line 'Exception ignored in'
-    traceback. It does not affect rendering or results — it just buries real errors in the log. Route
+    traceback. It does not affect rendering or results, it just buries real errors in the log. Route
     those specific unraisable exceptions to /dev/null while leaving every other one untouched."""
     import sys
 

@@ -1,4 +1,4 @@
-"""DiffusionUnetImagePolicy — the single locked architecture (PRD 8.2).
+"""DiffusionUnetImagePolicy: the single locked architecture (PRD 8.2).
 
 Wraps the obs encoder, the 1D conditional U-net denoiser, and the DDPM/DDIM
 scheduler. Exposes the inference surface the rest of the pipeline depends on:
@@ -130,7 +130,7 @@ class DiffusionUnetImagePolicy(nn.Module):
 
     @torch.no_grad()
     def predict_deterministic(self, obs: dict, K: int = 10, noise_seed: int | None = None) -> torch.Tensor:
-        """Mean over K DDIM samples — the deterministic prediction (PRD 8.1).
+        """Mean over K DDIM samples: the deterministic prediction (PRD 8.1).
 
         When noise_seed is given (rollouts, PRD 8.3) the generator is fixed so the
         prediction is reproducible across checkpoints.
