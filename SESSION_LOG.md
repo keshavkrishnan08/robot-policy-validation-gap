@@ -83,7 +83,7 @@ Files produced:
 - tests/ (test_config, test_model, test_metrics, test_analysis)
 - paper/ (main.tex, sections/*, references.bib, results_macros.tex, fill_paper)
 - configs/ (tasks.yaml, train.yaml, stats.yaml)
-- README.md, CLAUDE.md, DISCREPANCIES.md, requirements*.txt, .gitignore
+- README.md, DISCREPANCIES.md, requirements*.txt, .gitignore
 
 Next steps:
 1. On Kaggle: pip install -r requirements_locked.txt; python scripts/01_setup.py --download.
