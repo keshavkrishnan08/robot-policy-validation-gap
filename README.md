@@ -1,10 +1,10 @@
-# The Validation Gap — DRC CoRL 2026
+# The Validation Gap - DRC CoRL 2026
 
 When does offline validation loss predict a robot policy's real success rate, and when
 does it lie to you? This repo is the pre-registered, reproducible study that answers it.
 
 We train two architectures (Diffusion Policy and ACT) on eight LIBERO/Robomimic manipulation
-tasks, save six checkpoints per run across three seeds — 48 runs, 288 checkpoints — then
+tasks, save six checkpoints per run across three seeds - 48 runs, 288 checkpoints - then
 score every checkpoint two ways: eight offline metrics computed without touching the robot,
 and twenty closed-loop rollouts that measure the truth. Four pre-locked hypotheses (H1–H4)
 map which offline signals track deployment success, in which task regimes, and whether a
@@ -39,7 +39,7 @@ python scripts/preflight.py           # 9-point readiness gate (all real-run pat
 python scripts/smoke_test.py          # full pipeline on synthetic data, both architectures
 pytest -q                             # unit tests (28)
 ```
-Run `preflight.py` before any Kaggle session — it catches config/adapter/storage issues
+Run `preflight.py` before any Kaggle session - it catches config/adapter/storage issues
 on CPU in seconds, so a GPU session never fails hours in.
 
 ## Real run (Kaggle dual-T4)
