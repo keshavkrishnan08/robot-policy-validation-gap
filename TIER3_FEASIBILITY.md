@@ -1,9 +1,9 @@
-# Tier 3 Feasibility — Real-Robot Validation Without a Robot
+# Tier 3 Feasibility: Real-Robot Validation Without a Robot
 
 **Date:** 2026-05-25
 **Question:** Can we validate the offline metrics against real-robot outcomes using public
 data, so the paper escapes "sim-only"?
-**Verdict: GO — via SIMPLER (not RoboArena).** Feasible, with bounded engineering risk.
+**Verdict: GO, via SIMPLER (not RoboArena).** Feasible, with bounded engineering risk.
 
 ---
 
@@ -13,7 +13,7 @@ data, so the paper escapes "sim-only"?
    correlation between *validation MSE* and *real-world* success across policies:
    **Pearson r = 0.308** (MMRV 0.375). SIMPLER's own sim hits r = 0.924. Our claim becomes:
    *a no-rollout offline metric (M5/coherence) predicts real success better than validation
-   MSE's r = 0.308* — recovering part of what SIMPLER needs a full simulator for.
+   MSE's r = 0.308*, recovering part of what SIMPLER needs a full simulator for.
 
 2. **The comparison set is public.** SIMPLER ranks 6 checkpoints on Google Robot tasks
    (RT-1 Converged/15%/Begin, RT-1-X, RT-2-X, Octo-Base) plus Octo-Small on BridgeData V2.
@@ -34,7 +34,7 @@ data, so the paper escapes "sim-only"?
   (Fractal/RT-1 for Google Robot; BridgeData V2 for WidowX).
 - **Offline metrics, architecture-agnostic subset:** M1 (action L1 vs demo actions),
   M3 (sampling entropy, where the policy supports sampling), M8 (action confidence),
-  M5 (open-loop replay distance — computable because SimplerEnv *is* the sim).
+  M5 (open-loop replay distance, computable because SimplerEnv *is* the sim).
   M4 (latent Mahalanobis) is descoped: cross-architecture encoder access is messy.
 - **Ground truth:** per-policy real-world success rate (from SIMPLER) and SIMPLER-sim success.
 - **Test:** Spearman/Pearson between each offline metric and real success across the policies;
@@ -52,7 +52,7 @@ outcomes," neutralising the sim-only objection for most reviewers.
 1. **Cross-policy, not cross-checkpoint.** This validates "offline metrics rank policies by
    real success" (SIMPLER's exact setup), not the within-run checkpoint-selection gap (H1).
    Frame as a corroborating external-validation appendix, not a replacement for the main study.
-2. **Small n (6–7 policies).** Same n as SIMPLER's published comparison. The baseline (r=0.308)
+2. **Small n (6-7 policies).** Same n as SIMPLER's published comparison. The baseline (r=0.308)
    is fixed and beatable, so a clear improvement is still meaningful; report with the caveat.
 3. **M4 descoped** for cross-architecture reasons; external validation covers M1/M3/M5/M8.
 
@@ -61,7 +61,7 @@ outcomes," neutralising the sim-only objection for most reviewers.
 ## Engineering plan (de-risked)
 
 The only real risk is the dependency mess (TF 2.15 + JAX 0.4.20 + PyTorch 2.3 cannot coexist
-cleanly). Mitigation — **run each policy family in its own environment, dump per-policy metric
+cleanly). Mitigation, **run each policy family in its own environment, dump per-policy metric
 JSONs, then combine offline:**
 
 1. Env A (TF): RT-1 ×3, RT-1-X → `metrics_<policy>.json`

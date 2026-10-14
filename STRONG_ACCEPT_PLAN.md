@@ -1,4 +1,4 @@
-# Path to a CoRL Strong Accept — DRC Validation Gap
+# Path to a CoRL Strong Accept: DRC Validation Gap
 
 **Date:** 2026-05-25 (protocol revised before any training; pre-registration re-locked)
 **Constraint:** modest extra T4 compute; no hardware.
@@ -9,13 +9,13 @@ data cooperates, is what earns a champion.
 ---
 
 ## Why it's borderline today
-1. Single architecture (Diffusion Policy) — the most-cited fatal flaw.
+1. Single architecture (Diffusion Policy): the most-cited fatal flaw.
 2. 6 tasks → only 2 per horizon bucket; H2 (the novel regime claim) is under-supported.
 3. Findings partially pre-empted (SIMPLER, RoboEval, NeME).
 4. Sim-only, no real-robot evidence.
 5. H1 power ~0.61 at 10 pp.
 
-## Tier 1 — Rigor (fits the compute budget)
+## Tier 1: Rigor (fits the compute budget)
 - **Second architecture: ACT** (autoregressive CVAE transformer). Showing the gap and the
   metric rankings are *architecture-general* removes the biggest objection. Implemented in
   `drc/policy/act_policy.py`; selectable via `--arch act`.
@@ -25,7 +25,7 @@ data cooperates, is what earns a champion.
   roughly tripling N and lifting H1/H3 power above 0.8 for a 10 pp gap.
 - Compute: 8 tasks × 3 seeds × 2 architectures = 48 training runs (~2.7× original).
 
-## Tier 2 — Championable contribution (≈ free)
+## Tier 2: Championable contribution (≈ free)
 - **OffSel-Bench**: release the toolkit (pip-installable `drc` package) + the full
   (checkpoint × 8 offline metrics × 20-rollout success) dataset as a reusable artifact.
   Others test new offline metrics against ground-truth success *without retraining*.
@@ -33,19 +33,19 @@ data cooperates, is what earns a champion.
 - **Scientific headline:** the coherence hypothesis (local vs global metrics) explains the
   gap; causal-selection gives the deployable rule ("select by M5, recover X% of the oracle").
 
-## Tier 3 — Real-robot validation without a robot (the reach)
+## Tier 3: Real-robot validation without a robot (the reach)
 - **RoboArena** (arXiv:2506.18123) publishes real-robot rankings of 7 public generalist
   policies on DROID; **SimplerEnv-OpenVLA** pairs sim and real for RT-1/Octo/OpenVLA.
 - Compute the architecture-agnostic offline metrics (M1, M3, M8, generalised M4) on those
   public policies and test whether they predict the *real* ranking. If they do, the paper is
-  no longer sim-only — it is "offline metrics validated against independent real-robot
+  no longer sim-only, it is "offline metrics validated against independent real-robot
   outcomes." Caveat: this validates cross-*policy* ranking, not cross-*checkpoint* selection,
   and depends on the checkpoints being downloadable and runnable. Decision: go/no-go after a
   feasibility check on checkpoint availability.
 
 ## Realistic probability
-- Today: ~30–40% main track.
-- Tier 1 + 2 done, headline result positive: ~55–70% main track, plausible strong-accept.
+- Today: ~30-40% main track.
+- Tier 1 + 2 done, headline result positive: ~55-70% main track, plausible strong-accept.
 - Tier 1 + 2 + 3 with a positive external-validation: genuine strong-accept territory.
 
 ## What we cannot fix without hardware

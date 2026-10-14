@@ -1,4 +1,4 @@
-# Abstract — The Validation Gap (CoRL 2026)
+# Abstract: The Validation Gap (CoRL 2026)
 
 ## Title (candidates)
 1. **The Validation Gap: Calibrating Offline Metrics for Robot Policy Selection**
@@ -7,7 +7,7 @@
 
 ---
 
-## SUBMISSION ABSTRACT (current — in main.tex; concise, with theory + math, ~255 words)
+## SUBMISSION ABSTRACT (current: in main.tex; concise, with theory + math, ~255 words)
 
 Imitation-learned manipulation policies are deployed by choosing one checkpoint from the many
 saved during training. Because measuring success requires costly rollouts, practitioners select by
@@ -30,7 +30,7 @@ metrics by environment access, and the first systematic calibration of such metr
 deployment success on modern visuomotor policies. The protocol is pre-registered, needs no robot
 hardware, and runs on consumer GPUs.
 
-### Results sentence to insert after the run (NOT yet — no benchmark data exists)
+### Results sentence to insert after the run (NOT yet: no benchmark data exists)
 Drop in before the "To our knowledge" sentence, only if the LIBERO/Robomimic run supports it:
 > "We find that open-loop replay fidelity recovers the deployment ranking validation loss
 > discards, most strongly on long-horizon tasks, beating validation-loss selection by [X] pp."
@@ -58,26 +58,26 @@ lesson: stop grading robot policies one step at a time. Score the journey, or ru
 
 ---
 
-## Honesty ledger — what each clause rests on (READ before submitting)
+## Honesty ledger: what each clause rests on (READ before submitting)
 
 The abstract asserts only what is established in the literature, derived (theory), or guaranteed by
 the pre-registered design. No experimental (benchmark) result is claimed.
 
 | Clause | Status |
 |---|---|
-| "validation loss can be far worse than the best achievable" | ESTABLISHED (Robomimic 50–100%; SIMPLER). Safe. |
-| "δ_H ≤ L_a·ε·(L^H−1)/(L−1)" compounding bound | DERIVED, but CLASSICAL — attribute (Ross & Bagnell; Spencer; Simchowitz; Tan 2026). Not claimed as novel. |
+| "validation loss can be far worse than the best achievable" | ESTABLISHED (Robomimic 50-100%; SIMPLER). Safe. |
+| "δ_H ≤ L_a·ε·(L^H−1)/(L−1)" compounding bound | DERIVED, but CLASSICAL, attribute (Ross & Bagnell; Spencer; Simchowitz; Tan 2026). Not claimed as novel. |
 | "identifiability limit: no rollout-free metric can rank when L>1" | DERIVED (Prop 1). The environment-access partition is the genuinely fresh framing; honestly positioned as a selection-theoretic reading of known insufficiency results. |
 | "we score every checkpoint... 2 architectures, 8 tasks, 8 metrics" | BY DESIGN (pre-registered protocol). Safe. |
-| "test the predicted regime dependence / which metrics recover success" | QUESTIONS the study answers — no result asserted. Safe but reads reject-leaning (see below). |
+| "test the predicted regime dependence / which metrics recover success" | QUESTIONS the study answers, no result asserted. Safe but reads reject-leaning (see below). |
 | "first identifiability characterization / first systematic calibration" | NOVELTY claim. Empirical-calibration novelty is defensible (cite hpil2021 and differentiate). The identifiability framing is defensible; do not call the bound novel. |
 
 **Status of results: NONE on the benchmark.** Only a toy synthetic control study has run (n=3,
-2-D reacher) — directionally consistent with the prediction (coherence/replay metrics tracked
+2-D reacher), directionally consistent with the prediction (coherence/replay metrics tracked
 success; validation loss did not), but it is NOT a benchmark result and must not appear as one.
 
 **To finish the abstract:**
-1. Run Sessions 1–2 (Kaggle) → `scripts/05_analysis.py` → `scripts/fill_paper.py`.
+1. Run Sessions 1-2 (Kaggle) → `scripts/05_analysis.py` → `scripts/fill_paper.py`.
 2. Insert the results sentence above with the real number, only if supported.
 3. After Tier 3, optionally add: "and these offline metrics predict the published real-robot
    ranking of open policies better than validation MSE." Do NOT add before the Tier-3 run.

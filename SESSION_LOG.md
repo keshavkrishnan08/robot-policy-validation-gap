@@ -1,4 +1,4 @@
-# DRC_CoRL_2026 — Session Log
+# DRC_CoRL_2026: Session Log
 
 ```
 SESSION LOG ENTRY
@@ -38,7 +38,7 @@ SESSION LOG ENTRY
 =================
 Date: 2026 May 25
 Project: DRC_CoRL_2026
-Session: Implementation session — full codebase build from the PRD
+Session: Implementation session - full codebase build from the PRD
 Wall clock time: ~1 session (autonomous build)
 
 Activities:

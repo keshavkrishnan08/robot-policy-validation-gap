@@ -3,7 +3,7 @@
 Logged honestly during implementation. None block the experiment; all should be
 reflected in the paper's methods/limitations.
 
-## 1. H1 power — RESOLVED by the 48-run (two-architecture) design
+## 1. H1 power: RESOLVED by the 48-run (two-architecture) design
 - **Original concern (6 tasks × 3 seeds = 18 runs):** power ≈ 0.61 for a 10 pp gap
   at α=0.0125, vs the PRD's optimistic 0.83 (which used the uncorrected α=0.05).
 - **Current design (8 tasks × 3 seeds × 2 architectures = 48 runs):**
@@ -32,4 +32,4 @@ only higher-is-better metrics; the code in `drc/config.py` is authoritative.
 ## 4. Synthetic vs real
 Everything runs in two modes. The synthetic path verifies code correctness on CPU;
 it is NOT the experiment. `drc/devtools.make_fake_results` fabricates result tables
-purely to exercise the stats/figures code — these numbers must never enter the paper.
+purely to exercise the stats/figures code, these numbers must never enter the paper.

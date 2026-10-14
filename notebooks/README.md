@@ -6,9 +6,9 @@ runs one stage. Set `REPO_URL` to your fork in the first cell of each.
 | Notebook | Accelerator | What it does | Time |
 |----------|-------------|--------------|------|
 | `00_smoke_test.ipynb` | **CPU** | preflight + Part A controlled validation + full synthetic smoke + pytest | minutes |
-| `01_session1_libero.ipynb` | **GPU T4 x2** | train+metrics+rollouts for the 4 LIBERO tasks | ~1–4h |
-| `02_session2_robomimic.ipynb` | **GPU T4 x2** | Robomimic tasks + full analysis + paper macros | ~1–4h |
-| `03_partC_external.ipynb` | **GPU T4** | real-robot external validation (PyTorch policies) | ~3–4h |
+| `01_session1_libero.ipynb` | **GPU T4 x2** | train+metrics+rollouts for the 4 LIBERO tasks | ~1-4h |
+| `02_session2_robomimic.ipynb` | **GPU T4 x2** | Robomimic tasks + full analysis + paper macros | ~1-4h |
+| `03_partC_external.ipynb` | **GPU T4** | real-robot external validation (PyTorch policies) | ~3-4h |
 
 Run `00` first (no GPU quota spent) to confirm the code is healthy on Kaggle. Then `01` → `02` → `03`.
 
@@ -28,5 +28,5 @@ Session-1 output into Session-2, either commit those CSVs and `git pull`, or sav
 `results/` as a Kaggle dataset and copy it in (see the optional cell in `02_...`).
 
 ## Resuming after a 12h timeout
-Completed tasks are saved and their checkpoints pruned, so just relaunch the session notebook — it
+Completed tasks are saved and their checkpoints pruned, so just relaunch the session notebook, it
 re-pulls and you re-run only the remaining tasks (or use `03_metrics.py --tasks <name>`).

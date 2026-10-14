@@ -1,4 +1,4 @@
-# Annotated Bibliography — The Validation Gap (DRC CoRL 2026)
+# Annotated Bibliography: The Validation Gap (DRC CoRL 2026)
 ## APA 7.0 | Generated 2026-05-25 | All sources live-verified via web/arXiv except †
 
 All entries marked ✅ were verified to exist via arXiv/official URL retrieval this session.
@@ -7,7 +7,7 @@ IRON RULE: unverifiable sources are excluded.
 
 ---
 
-### Section A: The Validation Gap — Core Observations
+### Section A: The Validation Gap: Core Observations
 
 **Mandlekar, A., Xu, D., Wong, J., Nasiriany, S., Wang, C., Kulkarni, R., Fei-Fei, L., Savarese, S., Zhu, Y., & Martín-Martín, R. (2021). What matters in learning from offline human demonstrations for robot manipulation.** *Conference on Robot Learning (CoRL)*. https://arxiv.org/abs/2108.03298 ✅
 
@@ -15,11 +15,11 @@ The foundational benchmark paper for offline and imitation learning from human d
 
 **Zhao, T. Z., Kumar, V., Levine, S., & Finn, C. (2023). Learning fine-grained bimanual manipulation with low-cost hardware.** *Robotics: Science and Systems (RSS)*. https://arxiv.org/abs/2304.13705 ✅ (confirmed via known venue)
 
-Introduces Action Chunking with Transformers (ACT) for bimanual manipulation on the ALOHA platform. The methods section adopts minimum validation loss as the checkpoint-selection rule without justification, describing it as the working default. This paper represents the tacit field consensus that validation-loss selection is "how things are done" — the practice the DRC study interrogates.
+Introduces Action Chunking with Transformers (ACT) for bimanual manipulation on the ALOHA platform. The methods section adopts minimum validation loss as the checkpoint-selection rule without justification, describing it as the working default. This paper represents the tacit field consensus that validation-loss selection is "how things are done", the practice the DRC study interrogates.
 
 **Li, X., Hsu, K., Gu, J., Pertsch, K., Mees, O., Walke, H., Fang, C., Itkina, M., Funkhouser, T., Burchfiel, B., Bonatti, R., Goldberg, K., Schwager, M., Tedrake, R., Levine, S., Zeng, A., Schmerling, E., & Pavone, M. (2024). Evaluating real-world robot manipulation policies in simulation.** *Conference on Robot Learning (CoRL 2024)*. https://arxiv.org/abs/2405.05941 ✅
 
-Introduces SIMPLER — simulation environments for evaluating manipulation policies deployed on physical robots. Directly compares validation MSE against sim-based rollout performance as policy-ranking signals and finds substantially lower correlation for MSE. Uses this finding to motivate simulator-based evaluation. Unlike DRC, SIMPLER accepts rollout cost (simulated) rather than asking whether offline metrics could suffice. The low MSE-vs-success correlation is the most rigorous prior measurement of the gap DRC studies.
+Introduces SIMPLER, simulation environments for evaluating manipulation policies deployed on physical robots. Directly compares validation MSE against sim-based rollout performance as policy-ranking signals and finds substantially lower correlation for MSE. Uses this finding to motivate simulator-based evaluation. Unlike DRC, SIMPLER accepts rollout cost (simulated) rather than asking whether offline metrics could suffice. The low MSE-vs-success correlation is the most rigorous prior measurement of the gap DRC studies.
 
 **Liu, B., Zhu, Y., Gao, C., Feng, Y., Liu, Q., Zhu, Y., & Stone, P. (2025). LIBERO-PRO: Towards robust and fair evaluation of vision-language-action models beyond memorization.** *arXiv preprint arXiv:2510.03827*. https://arxiv.org/abs/2510.03827 ✅
 
@@ -31,7 +31,7 @@ Concurrent companion to LIBERO-PRO. Shows performance drops from 95% to below 30
 
 **Marchand, M. (2024, December). Is using a validation set useful for end-to-end learning in robotics?** HuggingFace community blog. https://huggingface.co/blog/m1b/validation-loss-robotics ✅
 
-Practitioner synthesis of the validation-loss problem. Cites Mandlekar (2021) and Zhao (2023), notes the field has produced no consensus alternative metric, and calls for systematic study. Documents that the gap is practically acknowledged but theoretically unresolved — establishing that the research question is both known and unanswered.
+Practitioner synthesis of the validation-loss problem. Cites Mandlekar (2021) and Zhao (2023), notes the field has produced no consensus alternative metric, and calls for systematic study. Documents that the gap is practically acknowledged but theoretically unresolved, establishing that the research question is both known and unanswered.
 
 ---
 
@@ -67,7 +67,7 @@ Proposes NeME, a learned offline meta-evaluator for imitation policies in humano
 
 **Wang, Y. R., Ung, C., Tan, C., Tannert, G., Duan, J., Li, J., Le, A., Oswal, R., Grotz, M., Pumacay, W., Deng, Y., Krishna, R., Fox, D., & Srinivasa, S. (2025). RoboEval: Where robotic manipulation meets structured and scalable evaluation.** *arXiv preprint arXiv:2507.00435*. https://arxiv.org/abs/2507.00435 ✅ (University of Washington / Allen Institute)
 
-Proposes a structured evaluation framework that augments binary success with behavioural metrics — coordination quality, trajectory efficiency, spatial precision, and safety/stability — across eight bimanual manipulation tasks. Reports these metrics correlate with success in 59.4% of task-metric combinations across SOTA visuomotor policies. This is the most important paper to distinguish from the DRC study. **Critical distinction:** all RoboEval metrics are computed from closed-loop execution — they require running the policy in the environment. The DRC study asks whether signals computable *without* any environment interaction can predict success. RoboEval establishes that rollout-based behavioural metrics (including trajectory smoothness, analogous to DRC's M7) carry useful signal; DRC tests whether the same signal is recoverable offline.
+Proposes a structured evaluation framework that augments binary success with behavioural metrics, coordination quality, trajectory efficiency, spatial precision, and safety/stability, across eight bimanual manipulation tasks. Reports these metrics correlate with success in 59.4% of task-metric combinations across SOTA visuomotor policies. This is the most important paper to distinguish from the DRC study. **Critical distinction:** all RoboEval metrics are computed from closed-loop execution, they require running the policy in the environment. The DRC study asks whether signals computable *without* any environment interaction can predict success. RoboEval establishes that rollout-based behavioural metrics (including trajectory smoothness, analogous to DRC's M7) carry useful signal; DRC tests whether the same signal is recoverable offline.
 
 ---
 
@@ -75,7 +75,7 @@ Proposes a structured evaluation framework that augments binary success with beh
 
 **Chi, C., Feng, S., Du, Y., Xu, Z., Cousineau, E., Burchfiel, B., & Song, S. (2023). Diffusion Policy: Visuomotor policy learning via action diffusion.** *Robotics: Science and Systems (RSS)*. https://arxiv.org/abs/2303.04137 ✅
 
-Introduces Diffusion Policy — a denoising diffusion probabilistic model applied to visuomotor action prediction, using a 1D U-net conditioned on observation history. The architecture used in the DRC study, with published defaults for LIBERO and Robomimic. Chosen because it is the modal architecture in the current manipulation literature, not because it is expected to exhibit the gap in any particular direction.
+Introduces Diffusion Policy, a denoising diffusion probabilistic model applied to visuomotor action prediction, using a 1D U-net conditioned on observation history. The architecture used in the DRC study, with published defaults for LIBERO and Robomimic. Chosen because it is the modal architecture in the current manipulation literature, not because it is expected to exhibit the gap in any particular direction.
 
 **Liu, B., Zhu, Y., Gao, C., Feng, Y., Liu, Q., Zhu, Y., & Stone, P. (2023). LIBERO: Benchmarking knowledge transfer for lifelong robot learning.** *Advances in Neural Information Processing Systems (NeurIPS)*. https://arxiv.org/abs/2306.03310 ✅ (confirmed by known NeurIPS venue)
 
@@ -85,13 +85,13 @@ Introduces the LIBERO benchmark: four task suites (Spatial, Object, Goal, Long) 
 
 ### Section E: Surrogate-Endpoint Calibration (Methodological Precedent)
 
-**Prentice, R. L. (1989). Surrogate endpoints in clinical trials: Definition and operational criteria.** *Statistics in Medicine, 8*, 431–440. †
+**Prentice, R. L. (1989). Surrogate endpoints in clinical trials: Definition and operational criteria.** *Statistics in Medicine, 8*, 431-440. †
 
 Defines the formal criteria for a surrogate endpoint to be acceptable in lieu of a true clinical endpoint, via conditional independence. The conceptual framework the DRC study imports: validation loss is the surrogate; deployment success rate is the true endpoint. The "Prentice criteria" provide the formal vocabulary for asking when a surrogate is trustworthy.
 
-**Buyse, M., & Molenberghs, G. (1998). Criteria for the validation of surrogate endpoints in randomized experiments.** *Biometrics, 54*, 1014–1029. †
+**Buyse, M., & Molenberghs, G. (1998). Criteria for the validation of surrogate endpoints in randomized experiments.** *Biometrics, 54*, 1014-1029. †
 
-Develops the meta-analytic surrogate validation framework distinguishing individual-level association (surrogate-outcome correlation within a unit) from trial-level association (intervention-effect concordance across trials). This distinction maps directly to the DRC's H3 (per-checkpoint Spearman correlation within a run — individual-level) and H4 (cross-task composite predictor generalisation — trial-level).
+Develops the meta-analytic surrogate validation framework distinguishing individual-level association (surrogate-outcome correlation within a unit) from trial-level association (intervention-effect concordance across trials). This distinction maps directly to the DRC's H3 (per-checkpoint Spearman correlation within a run, individual-level) and H4 (cross-task composite predictor generalisation, trial-level).
 
 ---
 
