@@ -1,4 +1,4 @@
-# DRC CoRL 2026 — PRE-LOCKED training hyperparameters (PRD section 8.4).
+# DRC CoRL 2026: PRE-LOCKED training hyperparameters (PRD section 8.4).
 # Diffusion Policy defaults from Chi et al. 2023, LIBERO/Robomimic recipe.
 # Locked 2026-05-25. DO NOT EDIT after SA-2 begins.
 
@@ -37,7 +37,7 @@ augmentation:
   random_shift: true
   color_jitter: false
 
-# Metric sampling counts (PRD section 8.1) — locked.
+# Metric sampling counts (PRD section 8.1): locked.
 metrics:
   m1_K: 10        # deterministic prediction = mean of K denoise samples
   m3_K: 20        # entropy proxy samples
@@ -45,11 +45,11 @@ metrics:
   m4_shrinkage: ledoit_wolf
   m8_K: 20        # confidence proxy samples
 
-# Rollout protocol (PRD 8.3) — locked.
+# Rollout protocol (PRD 8.3): locked.
 rollout:
   n_rollouts: 20
   ddim_noise_seed: 42
   deterministic: true
-  K: 1            # deterministic rollout: 1 fixed-seed DDIM sample (not 10) — ~10x cheaper,
+  K: 1            # deterministic rollout: 1 fixed-seed DDIM sample (not 10), ~10x cheaper,
                   # no accuracy cost since the seed is fixed. Metrics still use m1_K=10.
   perturb_eps: 0.05   # init perturbation magnitude for the L-hat estimator + robustness check

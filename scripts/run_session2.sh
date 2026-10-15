@@ -42,4 +42,4 @@ done
 
 echo "[S2] SA-5 analysis + figures"
 python scripts/05_analysis.py
-echo "[S2] done — see results/results.json"
+echo "[S2] done, see results/results.json"

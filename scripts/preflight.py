@@ -170,7 +170,7 @@ def main():
     if errors:
         log.error(f"PREFLIGHT FAILED: {len(errors)} check(s) -> {errors}")
         sys.exit(1)
-    log.info("PREFLIGHT PASSED ✅ — experiments are wired and ready to launch.")
+    log.info("PREFLIGHT PASSED ✅, experiments are wired and ready to launch.")
 
 
 if __name__ == "__main__":

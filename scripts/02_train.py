@@ -27,7 +27,7 @@ def run_one(task, seed, arch, args):
     # (or a fresh 12h Kaggle session) pick up where it left off instead of retraining from scratch.
     want_epochs = ckpt_epochs or list(config.CHECKPOINT_EPOCHS)
     if not args.force and all(os.path.exists(ckpt_path(task, seed, e, arch)) for e in want_epochs):
-        log.info(f"skip {task} s{seed} [{arch}] — all {len(want_epochs)} checkpoints already present")
+        log.info(f"skip {task} s{seed} [{arch}], all {len(want_epochs)} checkpoints already present")
         return
     train_run(
         task=task,

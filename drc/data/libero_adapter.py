@@ -42,7 +42,7 @@ def load_libero_dataset(task_cfg: dict, n_obs_steps: int = 2, horizon: int = 16,
     bench = task_cfg["benchmark"]
     demo_dir = os.path.join(get_libero_path("datasets"), bench)
     if not os.path.isdir(demo_dir):
-        raise FileNotFoundError(f"{demo_dir} missing — did download_task.py download suite '{bench}'?")
+        raise FileNotFoundError(f"{demo_dir} missing, did download_task.py download suite '{bench}'?")
     # Resolve the demo hdf5: match the bddl/task name, else fall back to task_id ordering.
     hdf5s = sorted(glob.glob(os.path.join(demo_dir, "*.hdf5")))
     matches = [f for f in hdf5s if task_cfg["bddl"] in os.path.basename(f)]

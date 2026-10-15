@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Kaggle Session (≤12h): the full reduced-scope study — LIBERO training + metrics/rollouts.
+# Kaggle Session (≤12h): the full reduced-scope study, LIBERO training + metrics/rollouts.
 # Runs the 3 LIBERO tasks x 2 archs x 3 seeds (18 runs, 90 checkpoints) on dual T4, then evaluates.
 set -euo pipefail
 cd "$(dirname "$0")/.."
@@ -49,4 +49,4 @@ for task in "${LIBERO_TASKS[@]}"; do
   rm -rf "checkpoints/$task"
   python scripts/download_task.py "$task" --clean   # delete this task's demos
 done
-echo "[S1] done — results/metrics.csv + results/rollouts.csv hold all LIBERO rows"
+echo "[S1] done, results/metrics.csv + results/rollouts.csv hold all LIBERO rows"

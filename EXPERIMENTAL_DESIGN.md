@@ -11,7 +11,7 @@ a specific prediction.
 ## The two predictions the experiments must hit
 - **P1 (functional form):** the validation gap grows with horizon $H$ and closed-loop gain $L$
   along $(L^H-1)/(L-1)$.
-- **P2 (identifiability / Prop 1):** rollout-free metrics (M1–M4, M6, M8) lose the ability to rank
+- **P2 (identifiability / Prop 1):** rollout-free metrics (M1-M4, M6, M8) lose the ability to rank
   checkpoints as $L\to{>}1$, while environment-querying metrics (M5, M7) keep it. There is a
   regime threshold, the "horizon wall."
 
@@ -34,7 +34,7 @@ upper bound for offline selection) with two corollaries; all four validated. Rea
 - **Thm 1 vs Thm 2: selection regret:** rollout-free validation-loss selection $0.63$ (≈ random
   $0.60$) vs oracle $0.99$ → regret $0.37$; environment-querying replay selection → regret $0.00$.
 - **Cor 1: horizon wall:** predicted $H^\star=12.8$ vs empirical $13$ (matches within one step).
-- Figures: `figures/partA/figA1`–`figA4`. In the paper §4 (Thm 1, Thm 2, Cor 1, Cor 2).
+- Figures: `figures/partA/figA1`-`figA4`. In the paper §4 (Thm 1, Thm 2, Cor 1, Cor 2).
 - **Scope:** controlled validation of the mechanism on a system meeting the assumptions; NOT a
   real-robot result. The manipulation evidence is Part B. The old image-sweep
   (`run_partA_sweep.py`) is superseded but kept.
@@ -59,7 +59,7 @@ The pre-registered protocol, already built: 8 LIBERO/Robomimic tasks × {Diffusi
   rollouts, measure how fast trajectories diverge (a finite-time Lyapunov estimate:
   $\hat L = (\delta_H/\delta_0)^{1/H}$). This places each real task on the theory's $x$-axis, so
   Part B reproduces Part A's curve with real policies. Reuses the perturbation rollouts (below).
-- Runs H1–H4, the coherence (local-vs-global) test, and the causal-selection analysis.
+- Runs H1-H4, the coherence (local-vs-global) test, and the causal-selection analysis.
 - **Buys:** the robotics-grade evidence that the theory's predictions hold for modern visuomotor
   policies across two architectures; the actionable selection rule; the released benchmark.
 
@@ -73,7 +73,7 @@ $r=0.308$). Run each framework in its own session (TF/JAX/PyTorch), combine offl
 - **Risk:** heterogeneous frameworks; cross-policy not cross-checkpoint (state this honestly).
 
 ## Supporting experiments (cheap, high value)
-- **Perturbation–gap link** (~40 rollouts): do val-loss-selected checkpoints degrade *more* under
+- **Perturbation-gap link** (~40 rollouts): do val-loss-selected checkpoints degrade *more* under
   small init perturbations? Connects the gap to the LIBERO-PRO robustness story, and the same
   perturbation rollouts feed the $\hat L$ estimate. Two birds.
 - **Causal selection** (free, post-hoc): expected deployed success under each metric-as-rule vs
@@ -120,7 +120,7 @@ is the fatal flaw), Part A sweep (validates the bound, nearly free), $\hat L$ es
 any of these removes a load-bearing piece of the strong-accept profile.
 
 ## Priority order (do in this sequence; each is shippable)
-1. **Part B core** (H1–H4 + coherence + causal selection), the paper exists at this point.
+1. **Part B core** (H1-H4 + coherence + causal selection), the paper exists at this point.
 2. **$\hat L$ estimation + the two headline figures** (gap vs amplification; metric-class vs $\hat L$)
 , this is what converts "calibration study" into "theory confirmed."
 3. **Part A controlled sweep**: clean validation of the bound and Prop 1.

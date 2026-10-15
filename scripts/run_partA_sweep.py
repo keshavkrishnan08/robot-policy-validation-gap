@@ -135,7 +135,7 @@ def main(args):
     log.info(f"figures: {os.path.basename(f5)}, {os.path.basename(f6)}")
     print("\n[interpretation] P1: gap should rise with amplification; "
           "P2: rollout_free_rho should fall toward 0 as L crosses 1 while env_query_rho stays higher.")
-    print("[REMINDER] controlled synthetic system — validates the theory's form; not a benchmark result.")
+    print("[REMINDER] controlled synthetic system, validates the theory's form; not a benchmark result.")
 
 
 if __name__ == "__main__":

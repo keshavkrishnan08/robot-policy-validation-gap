@@ -57,7 +57,7 @@ try:
     # A misconfigured GL backend doesn't error: it HANGS on the first offscreen render. Bound the
     # whole build+render with SIGALRM so this check fails loudly in seconds instead of blocking.
     def _timeout(_sig, _frm):
-        raise TimeoutError("env build/render exceeded 120s — almost certainly a headless-GL hang "
+        raise TimeoutError("env build/render exceeded 120s, almost certainly a headless-GL hang "
                            "(MUJOCO_GL). The real run would hang here too.")
     signal.signal(signal.SIGALRM, _timeout)
     signal.alarm(120)
@@ -68,7 +68,7 @@ try:
     raw = env.env.reset()
     img = raw.get("agentview_image")
     if img is None:
-        problems.append("env.reset() returned no agentview_image — rendering misconfigured")
+        problems.append("env.reset() returned no agentview_image, rendering misconfigured")
     else:
         print(f"  OK   offscreen render works: agentview_image {tuple(img.shape)}")
     signal.alarm(0)
@@ -81,6 +81,6 @@ print("\n=== result ===")
 if problems:
     for p in problems:
         print("  FAIL:", p)
-    print("INSTALL CHECK FAILED — fix the install before training (see scripts/kaggle_setup.sh notes).")
+    print("INSTALL CHECK FAILED, fix the install before training (see scripts/kaggle_setup.sh notes).")
     sys.exit(1)
-print("INSTALL CHECK PASSED — safe to proceed to download + training.")
+print("INSTALL CHECK PASSED, safe to proceed to download + training.")

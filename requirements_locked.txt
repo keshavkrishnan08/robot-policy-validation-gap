@@ -1,4 +1,4 @@
-# DRC CoRL 2026 — dependency notes.
+# DRC CoRL 2026: dependency notes.
 #
 # DO NOT `pip install -r requirements_locked.txt` on Kaggle for the sim stack:
 #  - `libero` is NOT a usable PyPI package (it installs from GitHub source), and

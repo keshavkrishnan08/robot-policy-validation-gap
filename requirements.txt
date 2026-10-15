@@ -1,4 +1,4 @@
-# DRC CoRL 2026 — runtime dependencies.
+# DRC CoRL 2026: runtime dependencies.
 # Analysis/dev box (CPU) needs only the top block. The Kaggle GPU run also needs
 # the simulation block. Pinned versions live in requirements_locked.txt.
 

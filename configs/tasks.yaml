@@ -1,6 +1,6 @@
-# DRC TMLR 2026 — task definitions (reduced scope).
+# DRC TMLR 2026: task definitions (reduced scope).
 # Three LIBERO tasks spanning the horizon axis (short/medium/long) on one benchmark,
-# one robot — so the horizon-wall effect is isolated, not confounded by benchmark.
+# one robot: so the horizon-wall effect is isolated, not confounded by benchmark.
 # held_out drives the H4 split (extrapolation to the longest horizon).
 
 tasks:

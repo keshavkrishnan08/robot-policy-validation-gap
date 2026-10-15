@@ -127,7 +127,7 @@ def main():
           f"(expected success {sel['best_expected_success_pct']:.1f}%)")
     print(f"  validation-L1 selection: {sel['M1_expected_success_pct']:.1f}%  "
           f"gain: {sel['gain_over_M1_pct']:+.1f} pp")
-    print("\n[REMINDER] synthetic toy task — sanity/intuition only, NOT paper findings.")
+    print("\n[REMINDER] synthetic toy task, sanity/intuition only, NOT paper findings.")
 
 
 if __name__ == "__main__":

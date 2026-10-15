@@ -7,22 +7,22 @@ difference in success rate between them.
 
 We pre-register four hypotheses.
 
-\paragraph{H1 — the gap exists.} The val-selected checkpoint is reliably worse than the
+\paragraph{H1, the gap exists.} The val-selected checkpoint is reliably worse than the
 rollout-best checkpoint. We test the per-run gap with a one-sided Wilcoxon signed-rank test
 across all \NRuns{} runs, declaring support only if the median gap exceeds ten percentage
 points at the Bonferroni-corrected $\alpha = 0.0125$.
 
-\paragraph{H2 — the gap is regime-dependent.} Long-horizon and contact-rich tasks should
+\paragraph{H2, the gap is regime-dependent.} Long-horizon and contact-rich tasks should
 show larger gaps than short, contact-light tasks. This is not a hunch: the compounding-error
 bound~\eqref{eq:dev} predicts the gap grows along $(L^H-1)/(L-1)$ in horizon $H$ and closed-loop
 expansiveness $L$, so the regime effect has a sign and a shape fixed in advance. We fit a linear mixed-effects model
 with regime fixed effects and a per-seed random intercept, and test it by likelihood ratio.
 
-\paragraph{H3 — a better offline metric exists.} At least one of seven alternative metrics
+\paragraph{H3, a better offline metric exists.} At least one of seven alternative metrics
 correlates with success rate better than validation L1, by per-run Spearman, with a paired
 Wilcoxon test Bonferroni-corrected across the seven comparisons.
 
-\paragraph{H4 — a composite predictor generalises.} A ridge regression over the eight
+\paragraph{H4, a composite predictor generalises.} A ridge regression over the eight
 metrics, fit on four tasks, predicts held-out success rate on two disjoint tasks with RMSE
 at least 20 percent below a validation-L1-only baseline.
 
