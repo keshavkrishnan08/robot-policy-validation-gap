@@ -14,8 +14,6 @@ compound as the policy drifts onto states the demonstrations never covered. This
 validation loss the way clinical trials treat a biomarker: a cheap surrogate endpoint that has to be
 calibrated against the true endpoint, closed-loop success, before anyone trusts it.
 
-Paper draft: **`paper/main.tex`** (prepared for CoRL 2026; the benchmark results are not in yet).
-
 ```
 LIBERO demonstrations (3 tasks: short, medium, long horizon)
     ->  train Diffusion Policy and ACT, 3 seeds each, checkpoints at epochs 10, 25, 50, 80, 120
